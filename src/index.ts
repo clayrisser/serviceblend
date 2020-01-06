@@ -100,7 +100,12 @@ export default class ServiceBlend {
       {}
     );
     if (environment.install) {
-      await runProcess(environment.install, this.options, env);
+      await runProcess(
+        environment.install,
+        this.options,
+        env,
+        newTerminal === 'first' ? 'first' : 'always'
+      ).catch((err: ExecaError) => handle(new Error(err.shortMessage)));
     }
     if (typeof environment.run === 'string' || Array.isArray(environment.run)) {
       runProcess(
