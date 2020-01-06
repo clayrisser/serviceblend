@@ -1,0 +1,76 @@
+{
+  "name": "serviceblend",
+  "version": "0.0.1",
+  "description": "blend service environments",
+  "keywords": [
+    "serviceblend",
+    "service",
+    "blend",
+    "environment"
+  ],
+  "homepage": "https://github.com/codejamninja/serviceblend",
+  "bugs": {
+    "url": "https://github.com/codejamninja/serviceblend/issues",
+    "email": "jam@codejam.ninja"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Jam Risser",
+    "email": "jam@codejam.ninja",
+    "url": "https://codejam.ninja"
+  },
+  "files": [
+    "lib",
+    "bin"
+  ],
+  "main": "lib/index.js",
+  "bin": {
+    "serviceblend": "bin/serviceblend.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/codejamninja/serviceblend"
+  },
+  "scripts": {
+    "build": "npm run test && babel src -d lib --extensions \".ts,.tsx\" --source-maps inline && tsc -d --emitDeclarationOnly",
+    "clean": "git clean -fXd -e \\!node_modules -e \\!node_modules/**/* && jest --clearCache",
+    "clean:purge": "jest --clearCache && git clean -fXd",
+    "format": "prettier --write ./**/*.{json,md,scss,yaml,yml,js,jsx,ts,tsx} --ignore-path .gitignore",
+    "lint": "npm run format && tsc --allowJs --noEmit && eslint --ext .ts,.tsx ./",
+    "lint:fix": "npm run format && tsc --noEmit && eslint --ext .ts,.tsx --fix ./",
+    "prepublish": "npm run build",
+    "start": "babel-node src --extensions \".ts,.tsx\"",
+    "test": "npm run lint && jest"
+  },
+  "dependencies": {
+    "@babel/polyfill": "^7.7.0",
+    "core-js": "^3.6.1"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.7.7",
+    "@babel/core": "^7.7.7",
+    "@babel/node": "^7.7.7",
+    "@babel/preset-env": "^7.7.7",
+    "@babel/preset-typescript": "^7.7.7",
+    "@types/jest": "^24.0.25",
+    "@types/node": "^13.1.4",
+    "@typescript-eslint/eslint-plugin": "^2.14.0",
+    "@typescript-eslint/parser": "^2.14.0",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-typescript": "^6.3.1",
+    "eslint-config-jam": "^0.2.20",
+    "jest": "^24.9.0",
+    "prettier": "^1.19.1",
+    "typescript": "^3.7.4"
+  },
+  "engines": {
+    "node": ">=6.0.0"
+  },
+  "eslintIgnore": [
+    "lib"
+  ],
+  "jest": {
+    "testRegex": "tests(/|/.*/)[^_/]*[jt]sx?$",
+    "verbose": true
+  }
+}
