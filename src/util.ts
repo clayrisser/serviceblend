@@ -1,45 +1,32 @@
-import glob from 'glob';
 import path from 'path';
 import pkgDir from 'pkg-dir';
-import { cosmiconfig } from 'cosmiconfig';
-import { mapSeries } from 'bluebird';
-import defaultConfig from './defaultConfig';
 import defaultOptions from './defaultOptions';
-import { Config, Connections, Options, Service } from './types';
+import { Connections, Options } from './types';
 
 export function parseConnectionsString(
   connectionsString: string,
   _options: Options = defaultOptions
-): Connections {
-  return connectionsString
+): [string | null, Connections] {
+  let defaultConnection: string | null = null;
+  const connections = connectionsString
     .split(',')
-    .reduce((connections: Connections, connectionString: string) => {
+    .reduce((connections: Connections, connectionString: string, i: number) => {
       const connectionMap = connectionString.split(':');
       if (connectionMap.length < 2) {
-        throw new Error(
-          'service must map to environment (e.g. service:environment)'
-        );
+        if (i > 0) {
+          throw new Error(
+            'all connections except the first are required to map a service to an environment (e.g. service:environment)'
+          );
+        }
+        const [environmentName] = connectionMap;
+        defaultConnection = environmentName;
+      } else {
+        const [environmentName, serviceName] = connectionMap;
+        connections[environmentName] = serviceName;
       }
-      const [serviceName, environmentName] = connectionMap;
-      connections[serviceName] = environmentName;
       return connections;
     }, {});
-}
-
-export async function getPartialConfig(
-  configPath: string,
-  _options: Options = defaultOptions
-): Promise<Config> {
-  let config: Config;
-  try {
-    const payload = await cosmiconfig('serviceblend').load(configPath);
-    config = (payload && payload.config ? payload.config : {}) as Config;
-  } catch (err) {
-    if (err.name !== 'YAMLException') throw err;
-    // eslint-disable-next-line import/no-dynamic-require,global-require,no-eval
-    config = eval(`require(${err.mark.name})`);
-  }
-  return config;
+  return [defaultConnection, connections];
 }
 
 export function getOptions(options: Partial<Options>): Options {
@@ -49,32 +36,4 @@ export function getOptions(options: Partial<Options>): Options {
       ? path.resolve(process.cwd(), options.rootPath)
       : pkgDir.sync(process.cwd()) || process.cwd()
   };
-}
-
-export async function getConfig(
-  options: Options = defaultOptions
-): Promise<Config> {
-  const { rootPath } = options;
-  const matches = await new Promise<string[]>((resolve, reject) => {
-    glob(
-      '**/.serviceblendrc{,.js,.json,.yml,.yaml}',
-      { cwd: rootPath, ignore: 'node_modules/**/*' },
-      (err: Error | null, matches: string[]) => {
-        if (err) return reject(err);
-        return resolve(matches);
-      }
-    );
-  });
-  return (
-    await mapSeries(matches, async (match: string) => {
-      return getPartialConfig(path.resolve(rootPath, match), options);
-    })
-  ).reduce((config: Config, partialConfig: Partial<Config>) => {
-    Object.entries(partialConfig.services || {}).forEach(
-      ([serviceName, service]: [string, Service]) => {
-        config.services[serviceName] = service;
-      }
-    );
-    return config;
-  }, defaultConfig);
 }

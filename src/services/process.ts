@@ -1,6 +1,13 @@
 import execa, { ExecaChildProcess, ExecaReturnValue } from 'execa';
 import { mapSeries } from 'bluebird';
-import { Command, Options, Processes, Terminal, TerminalMap } from '../types';
+import {
+  Command,
+  EnvironmentVariables,
+  Options,
+  Processes,
+  Terminal,
+  TerminalMap
+} from '../types';
 
 export type NewTerminal = 'always' | 'never' | 'first' | boolean;
 
@@ -25,9 +32,14 @@ export function getTerminal(terminalName: string): Terminal {
 export async function runProcess(
   command: Command,
   options: Options,
+  env: EnvironmentVariables = {},
   newTerminal: NewTerminal = 'first',
   terminalName = getDefaultTerminal()
 ): Promise<ExecaReturnValue | ExecaChildProcess[] | null> {
+  env = {
+    ...process.env,
+    ...env
+  };
   let ps: ExecaChildProcess;
   const terminal = getTerminal(terminalName);
   if (typeof command === 'string') {
@@ -41,13 +53,13 @@ export async function runProcess(
         if (newTerminal === 'always') {
           ps = execa(terminal[0], [...terminal[1], command], {
             cwd: options.rootPath,
-            env: process.env,
+            env,
             stdout: 'inherit'
           });
         } else {
           ps = execa.command(command, {
             cwd: options.rootPath,
-            env: process.env,
+            env,
             stdout: 'inherit'
           });
           parentPids.add(ps.pid);
@@ -79,7 +91,7 @@ export async function runProcess(
         const command = commands.shift()!;
         ps = execa.command(command, {
           cwd: options.rootPath,
-          env: process.env,
+          env,
           stdout: 'inherit'
         });
         parentPids.add(ps.pid);
@@ -89,13 +101,13 @@ export async function runProcess(
         if (newTerminal && newTerminal !== 'never') {
           ps = execa(terminal[0], [...terminal[1], command], {
             cwd: options.rootPath,
-            env: process.env,
+            env,
             stdout: 'inherit'
           });
         } else {
           ps = execa.command(command, {
             cwd: options.rootPath,
-            env: process.env,
+            env,
             stdout: 'inherit'
           });
           parentPids.add(ps.pid);

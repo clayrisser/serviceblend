@@ -3,10 +3,20 @@ import { ExecaError } from 'execa';
 import { handle } from '@oclif/errors';
 import { mapSeries } from 'bluebird';
 import defaultOptions from './defaultOptions';
-import { Config, Connections, DockerCompose, Options } from './types';
 import { dockerUp } from './services/docker';
 import { getOptions } from './util';
 import { runProcess } from './services/process';
+import {
+  Config,
+  Connections,
+  DockerCompose,
+  Environment,
+  Environments,
+  Options,
+  Service,
+  Services,
+  EnvironmentVariables
+} from './types';
 
 export default class ServiceBlend {
   options: Options;
@@ -18,43 +28,96 @@ export default class ServiceBlend {
     this.options = getOptions(options);
   }
 
-  async run(connections: Connections) {
-    Object.entries(connections).forEach(
-      ([serviceName, environmentName]: [string, string]) => {
-        const service = this.config.services[serviceName];
-        if (!service) return;
-        const environment = service?.environments[environmentName];
-        if (!environment) return;
-        if (environment.environment) {
-          process.env = { ...process.env, ...environment.environment };
+  getEnvironmentsFromServices(
+    services: Services,
+    defaultConnection: string | null,
+    connections: Connections = {}
+  ): Environments {
+    return Object.entries(services).reduce(
+      (
+        environments: Environments,
+        [serviceName, service]: [string, Service]
+      ) => {
+        const environmentName = connections[serviceName] || defaultConnection;
+        if (environmentName) {
+          const environment = service?.environments[environmentName];
+          if (environment) {
+            environments[environmentName] = environment;
+          }
         }
+        return environments;
+      },
+      {}
+    );
+  }
+
+  async run(defaultConnection: string | null, connections: Connections) {
+    Object.values(
+      this.getEnvironmentsFromServices(
+        this.config.dependencyServices,
+        defaultConnection,
+        connections
+      )
+    ).forEach((environment: Environment) => {
+      if (environment.environment) {
+        process.env = { ...process.env, ...environment.environment };
+      }
+    });
+    await mapSeries(
+      Object.values(
+        this.getEnvironmentsFromServices(
+          this.config.dependencyServices,
+          defaultConnection,
+          connections
+        )
+      ),
+      async (environment: Environment) => {
+        this.runEnvironment(environment, !!this.options.openAll);
       }
     );
     await mapSeries(
-      Object.entries(connections),
-      async ([serviceName, environmentName]: [string, string]) => {
-        const service = this.config.services[serviceName];
-        if (!service) return;
-        const environment = service?.environments[environmentName];
-        if (!environment) return;
-        if (environment.install)
-          await runProcess(environment.install, this.options);
-        if (
-          typeof environment.run === 'string' ||
-          Array.isArray(environment.run)
-        ) {
-          runProcess(environment.run, this.options).catch((err: ExecaError) =>
-            handle(new Error(err.shortMessage))
-          );
-        } else if (typeof environment.run === 'object') {
-          dockerUp(
-            environment.run as DockerCompose,
-            this.options
-          ).catch((err: ExecaError) => handle(new Error(err.shortMessage)));
-        }
-        if (environment.open) await open(environment.open);
+      Object.values(this.config.localServices),
+      async (service: Service) => {
+        if (!service.localEnvironment) return;
+        this.runEnvironment(service.localEnvironment, true, 'first');
       }
     );
+  }
+
+  async runEnvironment(
+    environment: Environment,
+    openLink = false,
+    newTerminal = 'always'
+  ) {
+    const env = Object.entries(environment.environmentMap || {}).reduce(
+      (
+        env: EnvironmentVariables,
+        [key, value]: [string, string | undefined]
+      ) => {
+        if (value) env[key] = process.env[value];
+        return env;
+      },
+      {}
+    );
+    if (environment.install) {
+      await runProcess(environment.install, this.options, env);
+    }
+    if (typeof environment.run === 'string' || Array.isArray(environment.run)) {
+      runProcess(
+        environment.run,
+        this.options,
+        env,
+        newTerminal === 'first' ? 'first' : 'always'
+      ).catch((err: ExecaError) => handle(new Error(err.shortMessage)));
+    } else if (typeof environment.run === 'object') {
+      dockerUp(
+        environment.run as DockerCompose,
+        this.options,
+        env,
+        newTerminal === 'first' ? 'first' : 'always'
+      ).catch((err: ExecaError) => handle(new Error(err.shortMessage)));
+    }
+    if (openLink && environment.open) await open(environment.open);
   }
 }
 
