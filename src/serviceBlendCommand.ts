@@ -26,6 +26,7 @@ export default class ServiceBlendCommand extends Command {
     const configLoader = new ConfigLoader(options);
     await configLoader.load();
     const serviceBlend = new ServiceBlend(configLoader.config, options);
+    console.log(configLoader.config);
     const connections = parseConnectionsString(args.CONNECTIONS, options);
     return serviceBlend.run(...connections);
   }

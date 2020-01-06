@@ -1,4 +1,4 @@
-import glob from 'glob';
+import glob from 'fast-glob';
 import path from 'path';
 import { cosmiconfig } from 'cosmiconfig';
 import { mapSeries } from 'bluebird';
@@ -82,17 +82,12 @@ export default class ConfigLoader {
   async load(options: Options = defaultOptions): Promise<Config> {
     const config: Config = defaultConfig;
     const { rootPath } = options;
-    const matches = await new Promise<string[]>((resolve, reject) => {
-      glob(
-        '**/.serviceblendrc{,.js,.json,.yml,.yaml}',
-        { cwd: rootPath, ignore: 'node_modules/**/*' },
-        (err: Error | null, matches: string[]) => {
-          if (err) return reject(err);
-          return resolve(matches);
-        }
-      );
-    });
-    console.log('matches', matches);
+    const matches = await glob(
+      ['**/.serviceblendrc{,.js,.json,.yml,.yaml}', '!node_modules/**/*'],
+      {
+        cwd: rootPath
+      }
+    );
     if (!matches.length) return config;
     const match = matches.shift()!;
     const partialConfig = await this.getPartialConfig(
