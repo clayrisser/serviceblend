@@ -7,7 +7,7 @@ import defaultOptions from './defaultOptions';
 import { Config, Options, Service, Services } from './types';
 
 export default class ConfigLoader {
-  config: Config;
+  config: Config = defaultConfig;
 
   constructor(public options: Options = defaultOptions) {}
 
@@ -92,6 +92,7 @@ export default class ConfigLoader {
         }
       );
     });
+    console.log('matches', matches);
     if (!matches.length) return config;
     const match = matches.shift()!;
     const partialConfig = await this.getPartialConfig(
