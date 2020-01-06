@@ -89,7 +89,7 @@ export default class ConfigLoader {
       }
     );
     if (!matches.length) return config;
-    const match = matches.shift()!;
+    const match = matches.find((match: string) => match.indexOf('/') <= -1)!;
     const partialConfig = await this.getPartialConfig(
       path.resolve(rootPath, match),
       options
