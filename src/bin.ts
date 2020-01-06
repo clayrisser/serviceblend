@@ -6,5 +6,6 @@ import { run } from '@oclif/command';
     await run();
   } catch (err) {
     handle(err);
+    process.exit(1);
   }
 })();

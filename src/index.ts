@@ -1,4 +1,5 @@
 import defaultOptions from './defaultOptions';
+import start from './services/start';
 import { Config, Connections, Options } from './types';
 
 export default class ServiceBlend {
@@ -8,9 +9,7 @@ export default class ServiceBlend {
   ) {}
 
   async start(connections: Connections) {
-    console.log('config', this.config);
-    console.log('connections', connections);
-    return connections;
+    await start(connections, this.config, this.options);
   }
 }
 

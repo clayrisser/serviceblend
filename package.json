@@ -49,14 +49,17 @@
     "bluebird": "^3.7.2",
     "core-js": "^3.6.1",
     "cosmiconfig": "^6.0.0",
+    "execa": "^4.0.0",
     "glob": "^7.1.6",
     "globby": "^10.0.1",
+    "open": "^7.0.0",
     "pkg-dir": "^4.2.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.7.7",
     "@babel/core": "^7.7.7",
     "@babel/node": "^7.7.7",
+    "@babel/plugin-proposal-optional-chaining": "^7.7.5",
     "@babel/preset-env": "^7.7.7",
     "@babel/preset-typescript": "^7.7.7",
     "@types/bluebird": "^3.5.29",

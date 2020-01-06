@@ -1,5 +1,12 @@
 services:
   example:
-    production:
-      start:
-        open: https://example.com
+    environments:
+      local:
+        start:
+          command:
+            - echo world
+            - python -m http.server
+          open: http://localhost:8000
+      production:
+        start:
+          open: https://example.com
