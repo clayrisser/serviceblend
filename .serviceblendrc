@@ -2,11 +2,19 @@ services:
   example:
     environments:
       local:
+        install:
+          - yarn
+          - npm install
+        open: http://localhost:8000
+        start: python -m http.server
+      staging:
+        open: http://localhost:8080
         start:
-          command:
-            - echo world
-            - python -m http.server
-          open: http://localhost:8000
+          version: '3'
+          services:
+            nginx:
+              image: nginx
+              ports:
+                - 8080:80
       production:
-        start:
-          open: https://example.com
+        open: https://example.com

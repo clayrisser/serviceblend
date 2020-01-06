@@ -42,12 +42,19 @@ export async function getPartialConfig(
   return config;
 }
 
+export function getOptions(options: Partial<Options>): Options {
+  return {
+    ...options,
+    rootPath: options.rootPath
+      ? path.resolve(process.cwd(), options.rootPath)
+      : pkgDir.sync(process.cwd()) || process.cwd()
+  };
+}
+
 export async function getConfig(
   options: Options = defaultOptions
 ): Promise<Config> {
-  const rootPath = options.rootPath
-    ? path.resolve(process.cwd(), options.rootPath)
-    : (await pkgDir(process.cwd())) || process.cwd();
+  const { rootPath } = options;
   const matches = await new Promise<string[]>((resolve, reject) => {
     glob(
       '**/.serviceblendrc{,.js,.json,.yml,.yaml}',

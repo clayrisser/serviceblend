@@ -1,7 +1,6 @@
 import { Command, flags } from '@oclif/command';
 import ServiceBlend from '..';
-import { Options } from '../types';
-import { getConfig, parseConnectionsString } from '../util';
+import { getConfig, getOptions, parseConnectionsString } from '../util';
 
 export default class Start extends Command {
   static description = 'start service';
@@ -17,9 +16,9 @@ export default class Start extends Command {
 
   async run() {
     const { args, flags } = this.parse(Start);
-    const options: Options = {
+    const options = getOptions({
       debug: !!flags.debug
-    };
+    });
     if (flags.cwd) options.rootPath = flags.cwd;
     const config = await getConfig(options);
     const serviceBlend = new ServiceBlend(config, options);

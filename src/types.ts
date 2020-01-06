@@ -20,15 +20,25 @@ export interface Connections {
 
 export interface Options {
   debug?: boolean;
-  rootPath?: string;
+  rootPath: string;
 }
 
-export interface StartAction {
-  command?: Command;
-  open?: string;
+export interface DockerComposeService {}
+
+export interface DockerComposeServices {
+  [serviceName: string]: DockerComposeService;
 }
+
+export interface DockerCompose {
+  version?: string;
+  services?: DockerComposeServices;
+}
+
+export type StartAction = DockerCompose | string | string[];
 
 export interface Environment {
+  install?: string | string[];
+  open?: string;
   start?: StartAction;
 }
 
