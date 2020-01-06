@@ -1,10 +1,3 @@
-// import ServiceBlend from '.';
-
-// (async () => {
-//   const serviceBlend = new ServiceBlend();
-//   await serviceBlend.start();
-// })();
-
 import { handle } from '@oclif/errors';
 import { run } from '@oclif/command';
 

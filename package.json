@@ -46,8 +46,10 @@
     "@babel/polyfill": "^7.7.0",
     "@oclif/command": "^1.5.19",
     "@oclif/errors": "^1.2.2",
+    "bluebird": "^3.7.2",
     "core-js": "^3.6.1",
     "cosmiconfig": "^6.0.0",
+    "glob": "^7.1.6",
     "globby": "^10.0.1",
     "pkg-dir": "^4.2.0"
   },
@@ -57,6 +59,7 @@
     "@babel/node": "^7.7.7",
     "@babel/preset-env": "^7.7.7",
     "@babel/preset-typescript": "^7.7.7",
+    "@types/bluebird": "^3.5.29",
     "@types/cosmiconfig": "^6.0.0",
     "@types/jest": "^24.0.25",
     "@types/node": "^13.1.4",

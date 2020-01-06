@@ -9,4 +9,12 @@ export interface Options {
   rootPath?: string;
 }
 
-export interface Config {}
+export interface Service {}
+
+export interface Services {
+  [serviceName: string]: Service;
+}
+
+export interface Config {
+  services: Services;
+}
