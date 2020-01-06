@@ -2,6 +2,10 @@ import { ExecaChildProcess } from 'execa';
 
 export type Terminal = [string, string[]];
 
+export interface EnvironmentVariables {
+  [key: string]: string;
+}
+
 export interface TerminalMap {
   [terminalName: string]: Terminal;
 }
@@ -34,12 +38,13 @@ export interface DockerCompose {
   services?: DockerComposeServices;
 }
 
-export type StartAction = DockerCompose | string | string[];
+export type Run = DockerCompose | string | string[];
 
 export interface Environment {
+  environment?: EnvironmentVariables;
   install?: string | string[];
   open?: string;
-  start?: StartAction;
+  run?: Run;
 }
 
 export interface Environments {

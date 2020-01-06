@@ -1,9 +1,9 @@
 import { handle } from '@oclif/errors';
-import { run } from '@oclif/command';
+import ServiceBlendCommand from './serviceBlendCommand';
 
 (async () => {
   try {
-    await run();
+    await ServiceBlendCommand.run();
   } catch (err) {
     handle(err);
     process.exit(1);

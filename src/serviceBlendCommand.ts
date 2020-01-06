@@ -1,11 +1,11 @@
 import { Command, flags } from '@oclif/command';
-import ServiceBlend from '..';
-import { getConfig, getOptions, parseConnectionsString } from '../util';
+import ServiceBlend from '.';
+import { getConfig, getOptions, parseConnectionsString } from './util';
 
-export default class Start extends Command {
-  static description = 'start service';
+export default class ServiceBlendCommand extends Command {
+  static description = 'run service';
 
-  static examples = ['$ reactant start hello'];
+  static examples = ['$ reactant hello'];
 
   static flags = {
     debug: flags.boolean({ char: 'd', required: false }),
@@ -15,7 +15,7 @@ export default class Start extends Command {
   static args = [{ name: 'CONNECTIONS', required: true }];
 
   async run() {
-    const { args, flags } = this.parse(Start);
+    const { args, flags } = this.parse(ServiceBlendCommand);
     const options = getOptions({
       debug: !!flags.debug
     });
@@ -23,6 +23,6 @@ export default class Start extends Command {
     const config = await getConfig(options);
     const serviceBlend = new ServiceBlend(config, options);
     const connections = parseConnectionsString(args.CONNECTIONS, options);
-    return serviceBlend.start(connections);
+    return serviceBlend.run(connections);
   }
 }

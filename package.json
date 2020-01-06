@@ -91,8 +91,7 @@
     "verbose": true
   },
   "oclif": {
-    "commands": "./lib/commands",
-    "bin": "reactant",
+    "bin": "serviceblend",
     "plugins": [
       "@oclif/plugin-help"
     ]

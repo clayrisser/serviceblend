@@ -6,10 +6,12 @@ services:
           - yarn
           - npm install
         open: http://localhost:8000
-        start: python -m http.server
+        run: python -m http.server
       staging:
         open: http://localhost:8080
-        start:
+        environment:
+          HELLO: world
+        run:
           version: '3'
           services:
             nginx:
