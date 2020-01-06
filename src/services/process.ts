@@ -54,12 +54,14 @@ export async function runProcess(
           ps = execa(terminal[0], [...terminal[1], command], {
             cwd: options.rootPath,
             env,
+            shell: true,
             stdout: 'inherit'
           });
         } else {
           ps = execa.command(command, {
             cwd: options.rootPath,
             env,
+            shell: true,
             stdout: 'inherit'
           });
           parentPids.add(ps.pid);
@@ -92,6 +94,7 @@ export async function runProcess(
         ps = execa.command(command, {
           cwd: options.rootPath,
           env,
+          shell: true,
           stdout: 'inherit'
         });
         parentPids.add(ps.pid);
@@ -108,6 +111,7 @@ export async function runProcess(
           ps = execa.command(command, {
             cwd: options.rootPath,
             env,
+            shell: true,
             stdout: 'inherit'
           });
           parentPids.add(ps.pid);

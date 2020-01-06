@@ -3,16 +3,14 @@ services:
     environments:
       staging:
         environment:
-          HELLO: world
+          HELLO: 8888
+        run: python -m http.server
   example:
     local: local
     dependsOn:
       - hello
     environments:
       local:
-        run:
-          version: '3'
-          services:
-            hello:
-              image: alpine
-              command: echo ${HELLO}
+        environmentMap:
+          PORT: HELLO
+        run: python -m http.server ${PORT}
