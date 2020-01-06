@@ -63,7 +63,7 @@ export interface ServiceRc {
 }
 
 export interface ServicesRc {
-  [serviceName: string]: ServiceRc;
+  [serviceName: string]: ServiceRc | string;
 }
 
 export interface ServiceBlendRc {

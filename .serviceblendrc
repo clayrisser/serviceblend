@@ -5,10 +5,11 @@ services:
         environment:
           HELLO: 8888
         run: python -m http.server
+  docker: hello
   example:
     local: local
     dependsOn:
-      - hello
+      - docker
     environments:
       local:
         environmentMap:

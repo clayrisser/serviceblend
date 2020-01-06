@@ -14,8 +14,16 @@ export default class ConfigLoader {
   getServicesFromName(serviceNames: string[]): Services {
     const serviceNamesSet = new Set<string>(serviceNames);
     return Object.entries(this.config.services).reduce(
-      (services: Services, [serviceName, service]: [string, Service]) => {
-        if (serviceNamesSet.has(serviceName)) services[serviceName] = service;
+      (
+        services: Services,
+        [serviceName, service]: [string, Service | string]
+      ) => {
+        if (typeof service === 'string') {
+          service = this.config.services[service] as Service;
+        }
+        if (service && serviceNamesSet.has(serviceName)) {
+          services[serviceName] = service;
+        }
         return services;
       },
       {}
@@ -33,8 +41,8 @@ export default class ConfigLoader {
     return Object.entries(services).reduce(
       (services: Services, [serviceName, service]: [string, Service]) => {
         if (service.dependsOn) {
-          const dependsOn = service.dependsOn.filter((serviceName: string) =>
-            registeredServices.has(serviceName)
+          const dependsOn = service.dependsOn.filter(
+            (serviceName: string) => !registeredServices.has(serviceName)
           );
           Object.entries(
             this.getAllServices(
@@ -96,8 +104,8 @@ export default class ConfigLoader {
       this.options
     );
     Object.entries(partialConfig.services || {}).forEach(
-      ([serviceName, service]: [string, Service]) => {
-        if (service.local) {
+      ([serviceName, service]: [string, Service | string]) => {
+        if (typeof service !== 'string' && service.local) {
           service.localEnvironment = service.environments[service.local];
           if (!service.localEnvironment) return;
           config.localServices[serviceName] = service;
@@ -115,14 +123,14 @@ export default class ConfigLoader {
       })
     ).reduce((config: Config, partialConfig: Partial<Config>) => {
       Object.entries(partialConfig.services || {}).forEach(
-        ([serviceName, service]: [string, Service]) => {
+        ([serviceName, service]: [string, Service | string]) => {
           config.services[serviceName] = service;
         }
       );
       return config;
     }, config);
     this.config.dependencyServices = this.getDependencyServices(
-      this.getAllServices(this.config.services),
+      this.getAllServices(this.config.localServices),
       Object.keys(this.config.localServices)
     );
     return this.config;
