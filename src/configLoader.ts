@@ -79,9 +79,9 @@ export default class ConfigLoader {
     return config;
   }
 
-  async load(options: Options = defaultOptions): Promise<Config> {
+  async load(): Promise<Config> {
     const config: Config = defaultConfig;
-    const { rootPath } = options;
+    const { rootPath } = this.options;
     const matches = await glob(
       ['**/.serviceblendrc{,.js,.json,.yml,.yaml}', '!node_modules/**/*'],
       {
@@ -90,9 +90,10 @@ export default class ConfigLoader {
     );
     if (!matches.length) return config;
     const match = matches.find((match: string) => match.indexOf('/') <= -1)!;
+    if (!match) return this.config;
     const partialConfig = await this.getPartialConfig(
       path.resolve(rootPath, match),
-      options
+      this.options
     );
     Object.entries(partialConfig.services || {}).forEach(
       ([serviceName, service]: [string, Service]) => {
@@ -107,7 +108,10 @@ export default class ConfigLoader {
     );
     this.config = (
       await mapSeries(matches, async (match: string) => {
-        return this.getPartialConfig(path.resolve(rootPath, match), options);
+        return this.getPartialConfig(
+          path.resolve(rootPath, match),
+          this.options
+        );
       })
     ).reduce((config: Config, partialConfig: Partial<Config>) => {
       Object.entries(partialConfig.services || {}).forEach(
