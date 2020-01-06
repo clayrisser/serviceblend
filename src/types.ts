@@ -6,4 +6,7 @@ export interface Connections {
 
 export interface Options {
   debug?: boolean;
+  rootPath?: string;
 }
+
+export interface Config {}
