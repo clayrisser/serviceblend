@@ -2,9 +2,17 @@ import glob from 'fast-glob';
 import path from 'path';
 import { cosmiconfig } from 'cosmiconfig';
 import { mapSeries } from 'bluebird';
+import { reporter } from 'io-ts-reporters';
 import defaultConfig from './defaultConfig';
 import defaultOptions from './defaultOptions';
-import { Config, Options, Service, Services } from './types';
+import {
+  Config,
+  Options,
+  Service,
+  ServiceBlendRc,
+  ServiceRc,
+  Services
+} from './types';
 
 export default class ConfigLoader {
   config: Config = defaultConfig;
@@ -13,7 +21,7 @@ export default class ConfigLoader {
 
   getServicesFromName(serviceNames: string[]): Services {
     const serviceNamesSet = new Set<string>(serviceNames);
-    return Object.entries(this.config.services).reduce(
+    return Object.entries((this.config.services as unknown) as Services).reduce(
       (
         services: Services,
         [serviceName, service]: [string, Service | string]
@@ -75,16 +83,22 @@ export default class ConfigLoader {
     configPath: string,
     _options: Options = defaultOptions
   ): Promise<Config> {
-    let config: Config;
+    let config: unknown;
     try {
       const payload = await cosmiconfig('serviceblend').load(configPath);
-      config = (payload && payload.config ? payload.config : {}) as Config;
+      config = payload && payload.config ? payload.config : {};
     } catch (err) {
       if (err.name !== 'YAMLException') throw err;
       // eslint-disable-next-line import/no-dynamic-require,global-require,no-eval
       config = eval(`require(${err.mark.name})`);
     }
-    return config;
+    return this.validate(config);
+  }
+
+  validate(config: unknown): Config {
+    const errors = reporter(ServiceBlendRc.decode(config));
+    if (errors.length) throw new Error(errors.join('\n\n'));
+    return config as Config;
   }
 
   async load(): Promise<Config> {
@@ -103,17 +117,17 @@ export default class ConfigLoader {
       path.resolve(rootPath, match),
       this.options
     );
-    Object.entries(partialConfig.services || {}).forEach(
-      ([serviceName, service]: [string, Service | string]) => {
-        if (typeof service !== 'string' && service.local) {
-          service.localEnvironment = service.environments[service.local];
-          if (!service.localEnvironment) return;
-          config.localServices[serviceName] = service;
-        } else {
-          config.services[serviceName] = service;
-        }
+    Object.entries(
+      ((partialConfig.services || {}) as unknown) as Services
+    ).forEach(([serviceName, service]: [string, Service | string]) => {
+      if (typeof service !== 'string' && service.local) {
+        service.localEnvironment = service.environments[service.local];
+        if (!service.localEnvironment) return;
+        config.localServices[serviceName] = service;
+      } else {
+        config.services[serviceName] = (service as unknown) as ServiceRc;
       }
-    );
+    });
     this.config = (
       await mapSeries(matches, async (match: string) => {
         return this.getPartialConfig(
@@ -122,11 +136,11 @@ export default class ConfigLoader {
         );
       })
     ).reduce((config: Config, partialConfig: Partial<Config>) => {
-      Object.entries(partialConfig.services || {}).forEach(
-        ([serviceName, service]: [string, Service | string]) => {
-          config.services[serviceName] = service;
-        }
-      );
+      Object.entries(
+        ((partialConfig.services || {}) as unknown) as Services
+      ).forEach(([serviceName, service]: [string, Service | string]) => {
+        config.services[serviceName] = (service as unknown) as ServiceRc;
+      });
       return config;
     }, config);
     this.config.dependencyServices = this.getDependencyServices(

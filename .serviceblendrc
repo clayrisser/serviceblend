@@ -2,8 +2,8 @@ services:
   hello:
     environments:
       staging:
-        environment:
-          HELLO: 8888
+        env:
+          HELLO: '8888'
         run: python -m http.server
   docker: hello
   example:
@@ -12,6 +12,6 @@ services:
       - docker
     environments:
       local:
-        environmentMap:
+        envMap:
           PORT: HELLO
         run: python -m http.server ${PORT}

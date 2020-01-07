@@ -1,14 +1,13 @@
+import * as t from 'io-ts';
 import { ExecaChildProcess } from 'execa';
 
 export type Terminal = [string, string[]];
 
-export interface EnvironmentVariables {
-  [key: string]: string | undefined;
-}
+export const Env = t.record(t.string, t.union([t.string, t.undefined]));
+export type Env = t.TypeOf<typeof Env>;
 
-export interface EnvironmentMap {
-  [key: string]: string;
-}
+export const EnvMap = t.record(t.string, t.string);
+export type EnvMap = t.TypeOf<typeof EnvMap>;
 
 export interface TerminalMap {
   [terminalName: string]: Terminal;
@@ -30,55 +29,65 @@ export interface Options {
   rootPath: string;
 }
 
-export interface DockerComposeService {}
+export const DockerComposeService = t.UnknownRecord;
+export type DockerComposeService = t.TypeOf<typeof DockerComposeService>;
 
-export interface DockerComposeServices {
-  [serviceName: string]: DockerComposeService;
-}
+export const DockerComposeServices = t.record(t.string, DockerComposeService);
+export type DockerComposeServices = t.TypeOf<typeof DockerComposeServices>;
 
-export interface DockerCompose {
-  version?: string;
-  services?: DockerComposeServices;
-}
+export const DockerCompose = t.type({
+  version: t.union([t.string, t.undefined]),
+  services: t.union([DockerComposeServices, t.undefined])
+});
+export type DockerCompose = t.TypeOf<typeof DockerCompose>;
 
-export type Run = DockerCompose | string | string[];
+export const Run = t.union([DockerCompose, t.string, t.array(t.string)]);
+export type Run = t.TypeOf<typeof Run>;
 
-export interface Environment {
-  dependsOn?: string[];
-  environment?: EnvironmentVariables;
-  environmentMap?: EnvironmentMap;
-  install?: string | string[];
-  open?: string;
-  run?: Run;
-}
+export const Environment = t.type({
+  dependsOn: t.union([t.array(t.string), t.undefined]),
+  env: t.union([Env, t.undefined]),
+  envMap: t.union([EnvMap, t.undefined]),
+  install: t.union([t.string, t.array(t.string), t.undefined]),
+  open: t.union([t.string, t.array(t.string), t.undefined]),
+  run: t.union([Run, t.undefined])
+});
+export type Environment = t.TypeOf<typeof Environment>;
 
-export interface Environments {
-  [environmentName: string]: Environment;
-}
+export const Environments = t.record(t.string, Environment);
+export type Environments = t.TypeOf<typeof Environments>;
 
-export interface ServiceRc {
-  dependsOn?: string[];
+export const ServiceRc = t.union([
+  t.string,
+  t.type({
+    dependsOn: t.union([t.array(t.string), t.undefined]),
+    environments: Environments,
+    local: t.union([t.string, t.undefined])
+  })
+]);
+export type ServiceRc = t.TypeOf<typeof ServiceRc>;
+
+export const ServicesRc = t.record(t.string, ServiceRc);
+export type ServicesRc = t.TypeOf<typeof ServicesRc>;
+
+export const ServiceBlendRc = t.type({
+  services: ServicesRc
+});
+export type ServiceBlendRc = t.TypeOf<typeof ServiceBlendRc>;
+
+export interface Service {
+  dependsOn: string[] | undefined;
   environments: Environments;
-  local?: string;
-}
-
-export interface ServicesRc {
-  [serviceName: string]: ServiceRc | string;
-}
-
-export interface ServiceBlendRc {
-  services: ServicesRc;
-}
-
-export interface Service extends ServiceRc {
-  localEnvironment?: Environment;
+  local: string | undefined;
+  localEnvironment: Environment | undefined;
 }
 
 export interface Services {
   [serviceName: string]: Service;
 }
 
-export interface Config extends ServiceBlendRc {
-  localServices: Services;
+export interface Config {
   dependencyServices: Services;
+  localServices: Services;
+  services: ServicesRc;
 }

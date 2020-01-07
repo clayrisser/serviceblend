@@ -15,7 +15,7 @@ import {
   Options,
   Service,
   Services,
-  EnvironmentVariables
+  Env
 } from './types';
 
 export default class ServiceBlend {
@@ -59,8 +59,8 @@ export default class ServiceBlend {
         connections
       )
     ).forEach((environment: Environment) => {
-      if (environment.environment) {
-        process.env = { ...process.env, ...environment.environment };
+      if (environment.env) {
+        process.env = { ...process.env, ...environment.env };
       }
     });
     await mapSeries(
@@ -89,11 +89,8 @@ export default class ServiceBlend {
     openLink = false,
     newTerminal = 'always'
   ) {
-    const env = Object.entries(environment.environmentMap || {}).reduce(
-      (
-        env: EnvironmentVariables,
-        [key, value]: [string, string | undefined]
-      ) => {
+    const env = Object.entries(environment.envMap || {}).reduce(
+      (env: Env, [key, value]: [string, string | undefined]) => {
         if (value) env[key] = process.env[value];
         return env;
       },
@@ -122,7 +119,12 @@ export default class ServiceBlend {
         newTerminal === 'first' ? 'first' : 'always'
       ).catch((err: ExecaError) => handle(new Error(err.shortMessage)));
     }
-    if (openLink && environment.open) await open(environment.open);
+    if (openLink && environment.open) {
+      if (typeof environment.open === 'string') {
+        environment.open = [environment.open];
+      }
+      await mapSeries(environment.open, (openLink: string) => open(openLink));
+    }
   }
 }
 

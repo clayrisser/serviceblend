@@ -2,7 +2,7 @@ import execa, { ExecaChildProcess, ExecaReturnValue } from 'execa';
 import { mapSeries } from 'bluebird';
 import {
   Command,
-  EnvironmentVariables,
+  Env,
   Options,
   Processes,
   Terminal,
@@ -32,7 +32,7 @@ export function getTerminal(terminalName: string): Terminal {
 export async function runProcess(
   command: Command,
   options: Options,
-  env: EnvironmentVariables = {},
+  env: Env = {},
   newTerminal: NewTerminal = 'first',
   terminalName = getDefaultTerminal()
 ): Promise<ExecaReturnValue | ExecaChildProcess[] | null> {

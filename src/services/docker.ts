@@ -3,7 +3,7 @@ import highwayhash from 'highwayhash';
 import jsYaml from 'js-yaml';
 import path from 'path';
 import { randomBytes } from 'crypto';
-import { DockerCompose, EnvironmentVariables, Options } from '../types';
+import { DockerCompose, Env, Options } from '../types';
 import { runProcess, parentPids, NewTerminal } from './process';
 
 const hashKey = randomBytes(32);
@@ -19,7 +19,7 @@ export function hashData(data: any): string {
 export async function dockerUp(
   dockerCompose: DockerCompose,
   options: Options,
-  env: EnvironmentVariables = {},
+  env: Env = {},
   newTerminal: NewTerminal = parentPids.size ? 'always' : 'first'
 ) {
   const tmpPath = path.resolve(options.rootPath, '.tmp/serviceblend');
