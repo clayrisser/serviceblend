@@ -9,12 +9,17 @@ export default class ServiceBlendCommand extends Command {
   static examples = ['$ reactant hello'];
 
   static flags = {
-    cwd: flags.string({ required: false }),
     debug: flags.boolean({ char: 'd', required: false }),
     openAll: flags.boolean({ char: 'o', required: false })
   };
 
-  static args = [{ name: 'CONNECTIONS', required: true }];
+  static args = [
+    { name: 'CONNECTIONS', required: true },
+    {
+      name: 'ROOT_PATH',
+      required: false
+    }
+  ];
 
   async run() {
     const { args, flags } = this.parse(ServiceBlendCommand);
@@ -22,7 +27,7 @@ export default class ServiceBlendCommand extends Command {
       debug: !!flags.debug,
       openAll: !!flags.openAll
     });
-    if (flags.cwd) options.rootPath = flags.cwd;
+    if (args.ROOT_PATH) options.rootPath = args.ROOT_PATH;
     const configLoader = new ConfigLoader(options);
     await configLoader.load();
     const serviceBlend = new ServiceBlend(configLoader.config, options);
