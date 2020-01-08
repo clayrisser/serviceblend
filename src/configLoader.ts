@@ -129,12 +129,15 @@ export default class ConfigLoader {
       }
     });
     this.config = (
-      await mapSeries(matches, async (match: string) => {
-        return this.getPartialConfig(
-          path.resolve(rootPath, match),
-          this.options
-        );
-      })
+      await mapSeries(
+        [...matches, ...(partialConfig.requires || [])],
+        async (match: string) => {
+          return this.getPartialConfig(
+            path.resolve(rootPath, match),
+            this.options
+          );
+        }
+      )
     ).reduce((config: Config, partialConfig: Partial<Config>) => {
       Object.entries(
         ((partialConfig.services || {}) as unknown) as Services

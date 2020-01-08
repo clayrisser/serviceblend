@@ -71,6 +71,7 @@ export const ServicesRc = t.record(t.string, ServiceRc);
 export type ServicesRc = t.TypeOf<typeof ServicesRc>;
 
 export const ServiceBlendRc = t.type({
+  requires: t.union([t.array(t.string), t.undefined]),
   services: ServicesRc
 });
 export type ServiceBlendRc = t.TypeOf<typeof ServiceBlendRc>;
@@ -87,6 +88,7 @@ export interface Services {
 }
 
 export interface Config {
+  requires: string[];
   dependencyServices: Services;
   localServices: Services;
   services: ServicesRc;

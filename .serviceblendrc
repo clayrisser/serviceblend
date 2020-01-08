@@ -1,11 +1,11 @@
 services:
+  docker: hello
   hello:
     environments:
       staging:
         env:
           HELLO: '8888'
         run: python -m http.server
-  docker: hello
   example:
     local: local
     dependsOn:
