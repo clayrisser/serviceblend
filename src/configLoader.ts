@@ -133,8 +133,8 @@ export default class ConfigLoader {
       async (match: string) => {
         const partialConfigPath = path.resolve(rootPath, match);
         return [
-          partialConfigPath,
-          this.getPartialConfig(partialConfigPath, this.options)
+          partialConfigPath.replace(/\/[^/]*$/, ''),
+          await this.getPartialConfig(partialConfigPath, this.options)
         ];
       }
     )) as [string, Partial<Config>][]).reduce(

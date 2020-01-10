@@ -1,0 +1,5 @@
+services:
+  cool:
+    environments:
+      staging:
+        run: pwd

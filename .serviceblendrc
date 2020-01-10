@@ -1,3 +1,6 @@
+requires:
+  - test/test
+
 services:
   docker: hello
   hello:
@@ -5,7 +8,7 @@ services:
       staging:
         env:
           HELLO: '8888'
-        run: sh -c "echo hello && false"
+        run: pwd
         # run:
         #   version: '3'
         #   services:
@@ -17,6 +20,7 @@ services:
     local: local
     dependsOn:
       - docker
+      - cool
     environments:
       local:
         envMap:
