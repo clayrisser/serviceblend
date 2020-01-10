@@ -53,7 +53,7 @@ export async function runProcess(
       try {
         if (newTerminal === 'always') {
           if (options.hold) {
-            command = `sh -c '${command} 2>&1 | true && echo finished && tail -f /dev/null'`;
+            command = `sh -c '${command} || true && echo finished && tail -f /dev/null'`;
           }
           ps = execa(terminal[0], [...terminal[1], command as string], {
             cwd: options.rootPath,
@@ -108,7 +108,7 @@ export async function runProcess(
       return mapSeries(commands, async (command: string) => {
         if (newTerminal && newTerminal !== 'never') {
           if (options.hold) {
-            command = `sh -c '${command} 2>&1 | true && echo finished && tail -f /dev/null'`;
+            command = `sh -c '${command} || true && echo finished && tail -f /dev/null'`;
           }
           ps = execa(terminal[0], [...terminal[1], command], {
             cwd: options.rootPath,

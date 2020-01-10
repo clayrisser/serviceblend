@@ -5,7 +5,7 @@ services:
       staging:
         env:
           HELLO: '8888'
-        run: echo hello
+        run: sh -c "echo hello && false"
         # run:
         #   version: '3'
         #   services:
