@@ -128,24 +128,35 @@ export default class ConfigLoader {
         config.services[serviceName] = (service as unknown) as ServiceRc;
       }
     });
-    this.config = (
-      await mapSeries(
-        [...matches, ...(partialConfig.requires || [])],
-        async (match: string) => {
-          return this.getPartialConfig(
-            path.resolve(rootPath, match),
-            this.options
-          );
-        }
-      )
-    ).reduce((config: Config, partialConfig: Partial<Config>) => {
-      Object.entries(
-        ((partialConfig.services || {}) as unknown) as Services
-      ).forEach(([serviceName, service]: [string, Service | string]) => {
-        config.services[serviceName] = (service as unknown) as ServiceRc;
-      });
-      return config;
-    }, config);
+    this.config = ((await mapSeries(
+      [...matches, ...(partialConfig.requires || [])],
+      async (match: string) => {
+        const partialConfigPath = path.resolve(rootPath, match);
+        return [
+          partialConfigPath,
+          this.getPartialConfig(partialConfigPath, this.options)
+        ];
+      }
+    )) as [string, Partial<Config>][]).reduce(
+      (
+        config: Config,
+        [partialConfigPath, partialConfig]: [string, Partial<Config>]
+      ) => {
+        Object.entries(
+          ((partialConfig.services || {}) as unknown) as Services
+        ).forEach(([serviceName, service]: [string, Service | string]) => {
+          config.services[serviceName] =
+            typeof service === 'string'
+              ? (service as string)
+              : ({
+                  rootPath: partialConfigPath,
+                  ...service
+                } as ServiceRc);
+        });
+        return config;
+      },
+      config
+    );
     this.config.dependencyServices = this.getDependencyServices(
       this.getAllServices(this.config.localServices),
       Object.keys(this.config.localServices)

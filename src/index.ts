@@ -31,17 +31,17 @@ export default class ServiceBlend {
     services: Services,
     defaultConnection: string | null,
     connections: Connections = {}
-  ): Environment[] {
+  ): [Environment, string][] {
     return Object.entries(services).reduce(
       (
-        environments: Environment[],
+        environments: [Environment, string][],
         [serviceName, service]: [string, Service]
       ) => {
         const environmentName = connections[serviceName] || defaultConnection;
         if (environmentName) {
           const environment = service?.environments[environmentName];
           if (environment) {
-            environments.push(environment);
+            environments.push([environment, service.rootPath]);
           }
         }
         return environments;
@@ -56,25 +56,34 @@ export default class ServiceBlend {
       defaultConnection,
       connections
     );
-    environments.forEach((environment: Environment) => {
+    environments.forEach(([environment, _rootPath]: [Environment, string]) => {
       if (environment.env) {
         process.env = { ...process.env, ...environment.env };
       }
     });
-    await mapSeries(environments, async (environment: Environment) => {
-      this.runEnvironment(environment, !!this.options.openAll);
-    });
+    await mapSeries(
+      environments,
+      async ([environment, rootPath]: [Environment, string]) => {
+        this.runEnvironment(environment, rootPath, !!this.options.openAll);
+      }
+    );
     await mapSeries(
       Object.values(this.config.localServices),
       async (service: Service) => {
         if (!service.localEnvironment) return;
-        this.runEnvironment(service.localEnvironment, true, 'first');
+        this.runEnvironment(
+          service.localEnvironment,
+          service.rootPath,
+          true,
+          'first'
+        );
       }
     );
   }
 
   async runEnvironment(
     environment: Environment,
+    rootPath: string,
     openLink = false,
     newTerminal = 'always'
   ) {
@@ -88,7 +97,10 @@ export default class ServiceBlend {
     if (environment.install) {
       await runProcess(
         environment.install,
-        this.options,
+        {
+          ...this.options,
+          rootPath
+        },
         env,
         newTerminal === 'first' ? 'first' : 'always'
       ).catch((err: ExecaError) => handle(new Error(err.shortMessage)));

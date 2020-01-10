@@ -63,7 +63,8 @@ export const ServiceRc = t.union([
   t.type({
     dependsOn: t.union([t.array(t.string), t.undefined]),
     environments: Environments,
-    local: t.union([t.string, t.undefined])
+    local: t.union([t.string, t.undefined]),
+    rootPath: t.union([t.string, t.undefined])
   })
 ]);
 export type ServiceRc = t.TypeOf<typeof ServiceRc>;
@@ -82,6 +83,7 @@ export interface Service {
   environments: Environments;
   local: string | undefined;
   localEnvironment: Environment | undefined;
+  rootPath: string;
 }
 
 export interface Services {
