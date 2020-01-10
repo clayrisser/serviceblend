@@ -108,7 +108,10 @@ export default class ServiceBlend {
     if (typeof environment.run === 'string' || Array.isArray(environment.run)) {
       runProcess(
         environment.run,
-        this.options,
+        {
+          ...this.options,
+          rootPath
+        },
         env,
         newTerminal === 'first' ? 'first' : 'always'
       ).catch((err: ExecaError) => handle(new Error(err.shortMessage)));
