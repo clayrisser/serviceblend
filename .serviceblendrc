@@ -1,6 +1,3 @@
-requires:
-  - test/test
-
 services:
   docker: hello
   hello:
