@@ -25,6 +25,7 @@ export interface Connections {
 
 export interface Options {
   debug?: boolean;
+  hold?: boolean;
   openAll?: boolean;
   rootPath: string;
 }

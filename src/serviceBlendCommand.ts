@@ -10,6 +10,7 @@ export default class ServiceBlendCommand extends Command {
 
   static flags = {
     debug: flags.boolean({ char: 'd', required: false }),
+    hold: flags.boolean({ char: 'h', required: false }),
     openAll: flags.boolean({ char: 'o', required: false })
   };
 
@@ -25,6 +26,7 @@ export default class ServiceBlendCommand extends Command {
     const { args, flags } = this.parse(ServiceBlendCommand);
     const options = getOptions({
       debug: !!flags.debug,
+      hold: !!flags.hold,
       openAll: !!flags.openAll
     });
     if (args.ROOT_PATH) options.rootPath = args.ROOT_PATH;

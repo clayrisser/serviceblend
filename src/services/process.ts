@@ -52,14 +52,17 @@ export async function runProcess(
       }
       try {
         if (newTerminal === 'always') {
-          ps = execa(terminal[0], [...terminal[1], command], {
+          if (options.hold) {
+            command = `sh -c '${command} && echo finished && tail -f /dev/null'`;
+          }
+          ps = execa(terminal[0], [...terminal[1], command as string], {
             cwd: options.rootPath,
             env,
             shell: true,
             stdout: 'inherit'
           });
         } else {
-          ps = execa.command(command, {
+          ps = execa.command(command as string, {
             cwd: options.rootPath,
             env,
             shell: true,
@@ -104,6 +107,9 @@ export async function runProcess(
       }
       return mapSeries(commands, async (command: string) => {
         if (newTerminal && newTerminal !== 'never') {
+          if (options.hold) {
+            command = `sh -c '${command} && echo finished && tail -f /dev/null'`;
+          }
           ps = execa(terminal[0], [...terminal[1], command], {
             cwd: options.rootPath,
             env,

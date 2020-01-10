@@ -5,13 +5,14 @@ services:
       staging:
         env:
           HELLO: '8888'
-        run:
-          version: '3'
-          services:
-            nginx:
-              image: nginx:latest
-              ports:
-                - 8080:80
+        run: echo hello
+        # run:
+        #   version: '3'
+        #   services:
+        #     nginx:
+        #       image: nginx:latest
+        #       ports:
+        #         - 8080:80
   example:
     local: local
     dependsOn:
