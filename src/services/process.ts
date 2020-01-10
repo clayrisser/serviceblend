@@ -47,6 +47,7 @@ export async function runProcess(
       function handlePs(ps: ExecaChildProcess) {
         processes[ps.pid] = ps;
         parentPids.delete(ps.pid);
+        ps.on('error', reject);
         return ps.on('exit', () => resolve(ps));
       }
       try {
@@ -86,6 +87,7 @@ export async function runProcess(
       processes[ps.pid] = ps;
       scopedProcesses[ps.pid] = ps;
       parentPids.delete(ps.pid);
+      ps.on('error', reject);
       return ps.on('exit', () => deletePid(ps.pid));
     }
     try {

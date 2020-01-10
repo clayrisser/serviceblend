@@ -1,19 +1,18 @@
 import fs from 'fs-extra';
-import highwayhash from 'highwayhash';
+import xxHash from 'xxhashjs';
 import jsYaml from 'js-yaml';
 import path from 'path';
-import { randomBytes } from 'crypto';
 import { DockerCompose, Env, Options } from '../types';
 import { runProcess, parentPids, NewTerminal } from './process';
 
-const hashKey = randomBytes(32);
+const seed = Math.random();
 export function hashData(data: any): string {
-  return highwayhash.asString(
-    hashKey,
-    Buffer.from(
-      typeof data === 'object' ? JSON.stringify(data) : data.toString()
+  return xxHash
+    .h32(
+      typeof data === 'object' ? JSON.stringify(data) : data.toString(),
+      seed
     )
-  );
+    .toString(16);
 }
 
 export async function dockerUp(

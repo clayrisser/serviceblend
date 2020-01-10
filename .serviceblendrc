@@ -1,6 +1,3 @@
-requires:
-  - ../hello/.serviceblendrc
-
 services:
   docker: hello
   hello:
@@ -8,7 +5,13 @@ services:
       staging:
         env:
           HELLO: '8888'
-        run: python -m http.server
+        run:
+          version: '3'
+          services:
+            nginx:
+              image: nginx:latest
+              ports:
+                - 8080:80
   example:
     local: local
     dependsOn:
