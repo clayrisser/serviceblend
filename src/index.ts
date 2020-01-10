@@ -11,7 +11,6 @@ import {
   Connections,
   DockerCompose,
   Environment,
-  Environments,
   Options,
   Service,
   Services,
@@ -32,49 +31,39 @@ export default class ServiceBlend {
     services: Services,
     defaultConnection: string | null,
     connections: Connections = {}
-  ): Environments {
+  ): Environment[] {
     return Object.entries(services).reduce(
       (
-        environments: Environments,
+        environments: Environment[],
         [serviceName, service]: [string, Service]
       ) => {
         const environmentName = connections[serviceName] || defaultConnection;
         if (environmentName) {
           const environment = service?.environments[environmentName];
           if (environment) {
-            environments[environmentName] = environment;
+            environments.push(environment);
           }
         }
         return environments;
       },
-      {}
+      []
     );
   }
 
   async run(defaultConnection: string | null, connections: Connections) {
-    Object.values(
-      this.getEnvironmentsFromServices(
-        this.config.dependencyServices,
-        defaultConnection,
-        connections
-      )
-    ).forEach((environment: Environment) => {
+    const environments = this.getEnvironmentsFromServices(
+      this.config.dependencyServices,
+      defaultConnection,
+      connections
+    );
+    environments.forEach((environment: Environment) => {
       if (environment.env) {
         process.env = { ...process.env, ...environment.env };
       }
     });
-    await mapSeries(
-      Object.values(
-        this.getEnvironmentsFromServices(
-          this.config.dependencyServices,
-          defaultConnection,
-          connections
-        )
-      ),
-      async (environment: Environment) => {
-        this.runEnvironment(environment, !!this.options.openAll);
-      }
-    );
+    await mapSeries(environments, async (environment: Environment) => {
+      this.runEnvironment(environment, !!this.options.openAll);
+    });
     await mapSeries(
       Object.values(this.config.localServices),
       async (service: Service) => {

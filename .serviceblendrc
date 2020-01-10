@@ -1,3 +1,6 @@
+requires:
+  - ../hello/.serviceblendrc
+
 services:
   docker: hello
   hello:
