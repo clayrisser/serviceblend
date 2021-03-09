@@ -1,8 +1,8 @@
 import YAML from 'yaml';
-import { ExecaChildProcess } from 'execa';
 import fs from 'fs-extra';
 import os from 'os';
 import path from 'path';
+import { ExecaChildProcess, ExecaError } from 'execa';
 import Plugin, { PluginDeclaration } from '~/plugin';
 import DockerCompose from './dockerCompose';
 
@@ -16,8 +16,21 @@ export default class DockerComposePlugin extends Plugin<DockerComposePluginDecla
       const dockerCompose = new DockerCompose({
         file: path.resolve(process.cwd(), this.declaration.compose)
       });
-      if (this.declaration.services?.length) {
-        // return dockerCompose.run();
+      if (this.declaration.service?.length) {
+        try {
+          const result = await dockerCompose.run(
+            { serviceName: this.declaration.service },
+            {},
+            (p: ExecaChildProcess) => {
+              this._contexts.push({ tmpPath, dockerCompose, p });
+            }
+          );
+          return result;
+        } catch (err) {
+          const error: ExecaError = err;
+          if (error.exitCode === 1) return null;
+          throw err;
+        }
       }
       return dockerCompose.up({}, {}, (p: ExecaChildProcess) => {
         this._contexts.push({ dockerCompose, p });
@@ -46,7 +59,7 @@ export default class DockerComposePlugin extends Plugin<DockerComposePluginDecla
 
 export interface DockerComposePluginDeclaration extends PluginDeclaration {
   compose?: string;
-  services?: any[];
+  service?: string;
   version?: string;
   [key: string]: any;
 }

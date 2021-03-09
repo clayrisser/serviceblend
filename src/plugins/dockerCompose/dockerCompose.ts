@@ -13,7 +13,43 @@ export default class DockerCompose extends Command<DockerComposeOptions> {
   }
 
   async help(options?: ExecaOptions, cb?: RunCallback) {
-    return this.run('--help', options, cb);
+    return this.execute('--help', options, cb);
+  }
+
+  async run(
+    runOptions: Partial<RunOptions> = {},
+    options?: ExecaOptions,
+    cb?: RunCallback
+  ): Promise<string> {
+    const { detatch, stdout, stdin, serviceName } = {
+      detatch: false,
+      stdout: true,
+      ...runOptions
+    };
+    return this.execute(
+      [
+        ...(this.options.file ? ['-f', this.options.file] : []),
+        'run',
+        ...(detatch ? ['-d'] : []),
+        '--',
+        serviceName || ''
+      ],
+      {
+        cwd: this.options.cwd,
+        ...options
+      },
+      (p: ExecaChildProcess) => {
+        if (stdin) {
+          const stream = Readable.from([stdin]);
+          if (p.stdin) stream.pipe(p.stdin);
+        }
+        if (stdout) {
+          p.stderr?.pipe(process.stderr);
+          p.stdout?.pipe(process.stdout);
+        }
+        if (cb) cb(p);
+      }
+    );
   }
 
   async up(
@@ -26,7 +62,7 @@ export default class DockerCompose extends Command<DockerComposeOptions> {
       stdout: true,
       ...upOptions
     };
-    return this.run(
+    return this.execute(
       [
         ...(this.options.file ? ['-f', this.options.file] : []),
         'up',
@@ -59,7 +95,7 @@ export default class DockerCompose extends Command<DockerComposeOptions> {
       stdout: true,
       ...downOptions
     };
-    return this.run(
+    return this.execute(
       [...(this.options.file ? ['-f', this.options.file] : []), 'down'],
       {
         cwd: this.options.cwd,
@@ -91,6 +127,13 @@ export interface DownOptions {
 }
 
 export interface UpOptions {
+  detatch: boolean;
+  stdin?: string;
+  stdout: boolean;
+}
+
+export interface RunOptions {
+  serviceName: string;
   detatch: boolean;
   stdin?: string;
   stdout: boolean;

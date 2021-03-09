@@ -21,7 +21,7 @@ export default abstract class Command<Options = CommandOptions> {
     } as unknown) as Options;
   }
 
-  async run<T = Result>(
+  async execute<T = Result>(
     args: string | string[] = [],
     options: ExecaOptions = {},
     cb: RunCallback = (p: ExecaChildProcess) => {

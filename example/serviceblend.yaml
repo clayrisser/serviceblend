@@ -24,10 +24,7 @@ services:
         envs: {}
         definition:
           compose: ./docker-compose.yaml
-          services:
-            - one
-            - two
-            - three
+          service: nginx
 
   #     # endpoint
   #     production:
