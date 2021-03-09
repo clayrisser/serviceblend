@@ -3,7 +3,7 @@ import Plugin, { PluginDeclaration } from '~/plugin';
 export default class CommandPlugin extends Plugin<CommandPluginDeclaration> {
   static pluginName = 'command';
 
-  async run() {
+  async onRun() {
     console.log('running command');
   }
 }

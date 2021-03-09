@@ -3,7 +3,7 @@ import Plugin, { PluginDeclaration } from '~/plugin';
 export default class ProxyPlugin extends Plugin<ProxyPluginDeclaration> {
   static pluginName = 'proxy';
 
-  async run() {
+  async onRun() {
     console.log('running proxy');
   }
 }

@@ -7,7 +7,9 @@ export default class Run extends Command {
   static examples = ['$ serviceblend run'];
 
   static flags: flags.Input<any> = {
-    environment: flags.string({ char: 'e', required: false })
+    daemon: flags.boolean({ char: 'd', required: false }),
+    environment: flags.string({ char: 'e', required: false }),
+    project: flags.string({ char: 'p', required: false })
   };
 
   static strict = false;
@@ -27,8 +29,20 @@ export default class Run extends Command {
     ).split('=');
     const [serviceName, environmentName] = [args?.[0], args?.[1]];
     const serviceBlend = new ServiceBlend({
-      defaultEnvironmentName: flags.environment
+      ...(flags.environment
+        ? {
+            defaultEnvironmentName: flags.environment
+          }
+        : {}),
+      ...(flags.project
+        ? {
+            projectName: flags.project
+          }
+        : {})
     });
-    await serviceBlend.run(serviceName, { environmentName });
+    await serviceBlend.run(serviceName, {
+      daemon: flags.daemon,
+      environmentName
+    });
   }
 }

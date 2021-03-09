@@ -5,18 +5,22 @@ import { HashMap } from '~/types';
 export default class Service {
   protected environments: HashMap<Environment> = {};
 
-  constructor(public config: IService) {
+  constructor(public projectName: string, public config: IService) {
     if (!Object.keys(config.environments).length) {
       throw new Error('at least 1 environment must be defined');
     }
     Object.entries(config.environments).forEach(
       ([key, value]: [string, IEnvironment]) => {
-        this.environments[key] = new Environment(value);
+        this.environments[key] = new Environment(projectName, value);
       }
     );
   }
 
-  async run(environmentName: string) {
+  async run(environmentName: string, options: Partial<ServiceRunOptions> = {}) {
+    const { daemon } = {
+      daemon: false,
+      ...options
+    };
     if (!environmentName) {
       environmentName = Object.keys(this.environments)?.[0];
       if (!environmentName) {
@@ -27,7 +31,7 @@ export default class Service {
     if (!environment) {
       throw new Error(`environment '${environmentName}' does not exist`);
     }
-    return environment.run();
+    return environment.run({ daemon });
   }
 
   async onStop() {
@@ -37,4 +41,8 @@ export default class Service {
       })
     );
   }
+}
+
+export interface ServiceRunOptions {
+  daemon: boolean;
 }

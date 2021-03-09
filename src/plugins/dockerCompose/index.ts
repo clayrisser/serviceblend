@@ -11,7 +11,7 @@ export default class DockerComposePlugin extends Plugin<DockerComposePluginDecla
 
   private _contexts: Context[] = [];
 
-  async run() {
+  async onRun() {
     if (typeof this.declaration.compose === 'string') {
       const dockerCompose = new DockerCompose({
         file: path.resolve(process.cwd(), this.declaration.compose)

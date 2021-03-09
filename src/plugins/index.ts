@@ -20,9 +20,8 @@ const plugins: HashMap<typeof Plugin> = ([
   {}
 );
 
-console.log('plugins', plugins);
-
 export function getPlugin<P = Plugin, C = PluginDeclaration>(
+  projectName: string,
   pluginName: string,
   pluginConfig: C
 ): P {
@@ -30,7 +29,7 @@ export function getPlugin<P = Plugin, C = PluginDeclaration>(
   if (!PluginClass) {
     throw new Error(`plugin '${pluginName}' does not exist`);
   }
-  return new PluginClass(pluginConfig) as P;
+  return new PluginClass(projectName, pluginConfig) as P;
 }
 
 export { Command, DockerCompose, Endpoint, Proxy, Supervisord };

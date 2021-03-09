@@ -7,11 +7,22 @@ export default abstract class Plugin<Declaration = HashMap> {
 
   protected declaration: Declaration;
 
-  constructor(declaration: Partial<Declaration> = {}) {
+  constructor(
+    protected projectName: string,
+    declaration: Partial<Declaration> = {}
+  ) {
     this.declaration = { ...declaration } as Declaration;
   }
 
-  abstract run(): Promise<any>;
+  async run(options: Partial<PluginRunOptions> = {}): Promise<any> {
+    const { daemon } = {
+      daemon: false,
+      ...options
+    };
+    return this.onRun();
+  }
+
+  abstract onRun(): Promise<any>;
 
   async onStop(): Promise<any> {
     return undefined;
@@ -19,3 +30,7 @@ export default abstract class Plugin<Declaration = HashMap> {
 }
 
 export interface PluginDeclaration {}
+
+export interface PluginRunOptions {
+  daemon: boolean;
+}

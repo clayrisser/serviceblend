@@ -15,6 +15,7 @@
     "mkdirs",
     "mkdtemp",
     "plusplus",
+    "proc",
     "serviceblend",
     "stderr",
     "stdin",

@@ -3,7 +3,7 @@ import Plugin, { PluginDeclaration } from '~/plugin';
 export default class EndpointPlugin extends Plugin<EndpointPluginDeclaration> {
   static pluginName = 'endpoint';
 
-  async run() {
+  async onRun() {
     console.log('running endpoint');
   }
 }
