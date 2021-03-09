@@ -1,15 +1,10 @@
 # serviceblend
 
-[![GitHub stars](https://img.shields.io/github/stars/codejamninja/serviceblend.svg?style=social&label=Stars)](https://github.com/codejamninja/serviceblend)
+[![GitHub stars](https://img.shields.io/github/stars/clayrisser/serviceblend.svg?style=social&label=Stars)](https://github.com/clayrisser/serviceblend)
 
 > blend service environments
 
 Please ★ this repo if you found it useful ★ ★ ★
-
-## Features
-
-- blends services
-- supports docker
 
 ## Installation
 
@@ -23,39 +18,39 @@ npm install -g serviceblend
 
 ## Usage
 
-[Contribute](https://github.com/codejamninja/serviceblend/blob/master/CONTRIBUTING.md) usage docs
+[Contribute](https://github.com/clayrisser/serviceblend/blob/master/CONTRIBUTING.md) usage docs
 
 ## Support
 
-Submit an [issue](https://github.com/codejamninja/serviceblend/issues/new)
+Submit an [issue](https://github.com/clayrisser/serviceblend/issues/new)
 
 ## Screenshots
 
-[Contribute](https://github.com/codejamninja/serviceblend/blob/master/CONTRIBUTING.md) a screenshot
+[Contribute](https://github.com/clayrisser/serviceblend/blob/master/CONTRIBUTING.md) a screenshot
 
 ## Contributing
 
-Review the [guidelines for contributing](https://github.com/codejamninja/serviceblend/blob/master/CONTRIBUTING.md)
+Review the [guidelines for contributing](https://github.com/clayrisser/serviceblend/blob/master/CONTRIBUTING.md)
 
 ## License
 
-[MIT License](https://github.com/codejamninja/serviceblend/blob/master/LICENSE)
+[MIT License](https://github.com/clayrisser/serviceblend/blob/master/LICENSE)
 
-[Jam Risser](https://codejam.ninja) © 2020
+[Clay Risser](https://clayrisser.com) © 2021
 
 ## Changelog
 
-Review the [changelog](https://github.com/codejamninja/serviceblend/blob/master/CHANGELOG.md)
+Review the [changelog](https://github.com/clayrisser/serviceblend/blob/master/CHANGELOG.md)
 
 ## Credits
 
-- [Jam Risser](https://codejam.ninja) - Author
+- [Clay Risser](https://clayrisser.com) - Author
 
 ## Support on Liberapay
 
 A ridiculous amount of coffee ☕ ☕ ☕ was consumed in the process of building this project.
 
-[Add some fuel](https://liberapay.com/codejamninja/donate) if you'd like to keep me going!
+[Add some fuel](https://liberapay.com/clayrisser/donate) if you'd like to keep me going!
 
-[![Liberapay receiving](https://img.shields.io/liberapay/receives/codejamninja.svg?style=flat-square)](https://liberapay.com/codejamninja/donate)
-[![Liberapay patrons](https://img.shields.io/liberapay/patrons/codejamninja.svg?style=flat-square)](https://liberapay.com/codejamninja/donate)
+[![Liberapay receiving](https://img.shields.io/liberapay/receives/clayrisser.svg?style=flat-square)](https://liberapay.com/clayrisser/donate)
+[![Liberapay patrons](https://img.shields.io/liberapay/patrons/clayrisser.svg?style=flat-square)](https://liberapay.com/clayrisser/donate)

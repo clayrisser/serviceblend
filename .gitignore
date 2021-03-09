@@ -76,6 +76,8 @@ typings/
 .tern-port
 /lib
 package-lock.json
+/dist
+/es
 yarn.lock
 tsconfig.tsbuildinfo
-/.tmp
+pnpm-lock.yaml

@@ -3,3 +3,5 @@ describe('serviceblend', () => {
     expect(true).toBe(true);
   });
 });
+
+export default null;

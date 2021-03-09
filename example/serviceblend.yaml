@@ -1,0 +1,58 @@
+services:
+  serviceA:
+    default: local
+    environments:
+      # docker compose
+      local:
+        endpoint: http://localhost:8080
+        open: true
+        plugin: docker-compose
+        envs: {}
+        definition:
+          version: '3'
+          services:
+            nginx:
+              image: nginx:latest
+              ports:
+                - 8080:80
+
+      # docker compose
+      staging:
+        endpoint: http://localhost:8080
+        open: true
+        plugin: docker-compose
+        envs: {}
+        definition:
+          compose: ./docker-compose.yaml
+          services:
+            - one
+            - two
+            - three
+
+  #     # endpoint
+  #     production:
+  #       plugin: endpoint
+  #       definition: http://example.com
+
+  # serviceB:
+  #   default: local
+  #   environments:
+  #     # proxy
+  #     local:
+  #       endpoint: http://localhost:8080
+  #       plugin: proxy
+  #       definition:
+  #         service: http://example.com
+  #         proxy: http://localhost:8080
+
+  #     # command
+  #     staging:
+  #       env: {}
+  #       plugin: command
+  #       definition: 'python -m http.serve'
+
+  #     # http proxy
+  #     production: 'https://example.com'
+
+  #   dependsOn:
+  #     - serviceB

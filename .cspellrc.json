@@ -1,0 +1,32 @@
+{
+  "language": "en",
+  "version": "0.1",
+  "words": [
+    "argv",
+    "babelrc",
+    "cspell",
+    "cspellrc",
+    "detatch",
+    "ecma",
+    "execa",
+    "jsx",
+    "lang",
+    "mjs",
+    "mkdirs",
+    "mkdtemp",
+    "plusplus",
+    "serviceblend",
+    "stderr",
+    "stdin",
+    "stdout",
+    "str",
+    "supervisord",
+    "tmpdir",
+    "tsconfig",
+    "tsx",
+    "umd",
+    "usr",
+    "yaml",
+    "yoda"
+  ]
+}

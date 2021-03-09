@@ -1,9 +1,0 @@
-{
-  "extends": ["jam/typescript/base"],
-  "rules": {
-    "no-async-promise-executor": "off",
-    "no-nested-ternary": "off",
-    "no-new": "off",
-    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }]
-  }
-}
