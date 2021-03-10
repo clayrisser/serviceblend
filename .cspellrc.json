@@ -3,6 +3,7 @@
   "version": "0.1",
   "words": [
     "argv",
+    "autorestart",
     "babelrc",
     "cspell",
     "cspellrc",

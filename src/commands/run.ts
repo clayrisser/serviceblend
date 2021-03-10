@@ -42,8 +42,8 @@ export default class Run extends Command {
         : {})
     });
     await serviceBlend.run(serviceName, {
-      mode: flags.mode as RunnerMode,
-      environmentName
+      environmentName,
+      ...(flags.mode ? { mode: flags.mode as RunnerMode } : {})
     });
   }
 }

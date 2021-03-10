@@ -1,4 +1,4 @@
-import { Proc } from 'pm2';
+import { ProcessDescription } from 'pm2';
 import { HashMap } from '~/types';
 import { RunnerMode } from '~/runner';
 
@@ -57,6 +57,6 @@ export interface ApparatusStopOptions {}
 
 export interface ApparatusContext {
   paths?: string[];
-  proc?: Proc;
+  processDescription?: ProcessDescription;
   [key: string]: any;
 }

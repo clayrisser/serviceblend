@@ -60,6 +60,7 @@
     "color-hash": "^1.0.3",
     "core-js": "^3.9.1",
     "execa": "^5.0.0",
+    "expand-home-dir": "^0.0.3",
     "fp-ts": "^2.9.5",
     "fs-extra": "^9.1.0",
     "io-ts": "^2.2.16",
