@@ -7,7 +7,6 @@ export default class Stop extends Command {
   static examples = ['$ serviceblend stop'];
 
   static flags: flags.Input<any> = {
-    daemon: flags.boolean({ char: 'd', required: false }),
     environment: flags.string({ char: 'e', required: false }),
     project: flags.string({ char: 'p', required: false })
   };
@@ -22,7 +21,7 @@ export default class Stop extends Command {
     }
   ];
 
-  async stop() {
+  async run() {
     const { flags } = this.parse(Stop);
     const args = (
       this.argv.filter((arg: string) => arg[0] !== '-')?.[0] || ''
@@ -41,7 +40,6 @@ export default class Stop extends Command {
         : {})
     });
     await serviceBlend.stop(serviceName, {
-      daemon: flags.daemon,
       environmentName
     });
   }

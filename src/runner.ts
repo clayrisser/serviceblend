@@ -2,7 +2,6 @@ import ColorHash from 'color-hash';
 import chalk from 'chalk';
 import pm2, { Proc, StartOptions as Pm2StartOptions } from 'pm2';
 import { Tail } from 'tail';
-import { HashMap } from '~/types';
 
 const logger = console;
 
@@ -174,8 +173,6 @@ export default abstract class Runner<Options = RunnerOptions> {
     });
   }
 }
-
-export type Result = string | HashMap;
 
 export interface RunnerOptions {
   cwd: string;

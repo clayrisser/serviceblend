@@ -4,7 +4,7 @@ import fs from 'fs-extra';
 import { PathReporter } from 'io-ts/PathReporter';
 
 export const Environment = t.type({
-  plugin: t.string,
+  apparatus: t.string,
   definition: t.unknown
 });
 export type Environment = t.TypeOf<typeof Environment>;
@@ -26,13 +26,14 @@ export const Config = t.type({
 });
 export type Config = t.TypeOf<typeof Config>;
 
-export async function loadConfig(config: string | Config) {
+export async function loadConfig(config: string | Config): Promise<Config> {
+  let configObj = config as Config;
   if (typeof config === 'string') {
     const configStr = (await fs.readFile(config)).toString();
-    config = YAML.parse(configStr);
+    configObj = YAML.parse(configStr);
   }
-  validate(config, Config);
-  return config;
+  validate(configObj, Config);
+  return configObj;
 }
 
 export function validate<T = any>(value: T, Type: t.Type<any>) {

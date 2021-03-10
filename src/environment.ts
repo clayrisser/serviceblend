@@ -1,37 +1,38 @@
-import { IEnvironment } from '~/config';
-import { getPlugin } from '~/plugins';
-import Plugin from '~/plugin';
+import { Environment as EnvironmentConfig } from '~/config';
+import { getApparatus } from '~/apparatuses';
+import Apparatus from '~/apparatus';
+import { RunnerMode } from './runner';
 
 export default class Environment {
-  protected plugin: Plugin;
+  protected apparatus: Apparatus;
 
-  constructor(public projectName: string, public config: IEnvironment) {
-    this.plugin = getPlugin(
+  constructor(public projectName: string, public config: EnvironmentConfig) {
+    this.apparatus = getApparatus(
       projectName,
-      (config.plugin as unknown) as string,
+      (config.apparatus as unknown) as string,
       config.definition
     );
   }
 
   async run(options: Partial<EnvironmentRunOptions> = {}) {
-    const { daemon } = {
-      daemon: false,
+    const { mode } = {
+      mode: RunnerMode.Foreground,
       ...options
     };
-    return this.plugin.run({ daemon });
+    return this.apparatus.start({ mode });
   }
 
   async stop(_options: Partial<EnvironmentStopOptions> = {}) {
-    return this.plugin.stop();
+    return this.apparatus.stop();
   }
 
   async onStop() {
-    await this.plugin.onStop();
+    await this.apparatus.onStop();
   }
 }
 
 export interface EnvironmentRunOptions {
-  daemon: boolean;
+  mode: RunnerMode;
 }
 
 export interface EnvironmentStopOptions {}

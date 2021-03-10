@@ -21,25 +21,24 @@ export default class DockerCompose extends Runner<DockerComposeOptions> {
   }
 
   async run(
-    options: Partial<RunOptions> = {},
+    options: Partial<DockerComposeRunOptions> = {},
     pm2StartOptions?: Pm2StartOptions,
     cb?: Pm2Callback
   ) {
-    const { detatch, serviceName }: RunOptions = {
-      detatch: false,
+    const { mode, serviceName }: DockerComposeRunOptions = {
+      mode: RunnerMode.Foreground,
       serviceName: '',
       ...options
     };
     const args = [
       ...(this.options.file ? ['-f', this.options.file] : []),
       'run',
-      ...(detatch ? ['-d'] : []),
       '--',
       serviceName || ''
     ];
     return this.start(
       args,
-      {},
+      { mode },
       {
         cwd: this.options.cwd,
         ...pm2StartOptions
@@ -53,13 +52,7 @@ export interface DockerComposeOptions extends RunnerOptions {
   file?: string;
 }
 
-export interface DownOptions {}
-
-export interface UpOptions {
-  detatch: boolean;
-}
-
-export interface RunOptions {
+export interface DockerComposeRunOptions {
   serviceName: string;
-  detatch: boolean;
+  mode: RunnerMode;
 }

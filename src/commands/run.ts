@@ -1,5 +1,6 @@
 import { Command, flags } from '@oclif/command';
 import ServiceBlend from '~/index';
+import { RunnerMode } from '~/runner';
 
 export default class Run extends Command {
   static description = 'runs service';
@@ -7,7 +8,7 @@ export default class Run extends Command {
   static examples = ['$ serviceblend run'];
 
   static flags: flags.Input<any> = {
-    daemon: flags.boolean({ char: 'd', required: false }),
+    mode: flags.boolean({ char: 'm', required: false }),
     environment: flags.string({ char: 'e', required: false }),
     project: flags.string({ char: 'p', required: false })
   };
@@ -41,7 +42,7 @@ export default class Run extends Command {
         : {})
     });
     await serviceBlend.run(serviceName, {
-      daemon: flags.daemon,
+      mode: flags.mode as RunnerMode,
       environmentName
     });
   }

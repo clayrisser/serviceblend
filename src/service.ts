@@ -1,24 +1,28 @@
-import { IService, IEnvironment } from '~/config';
 import Environment from '~/environment';
 import { HashMap } from '~/types';
+import {
+  Service as ServiceConfig,
+  Environment as EnvironmentConfig
+} from '~/config';
+import { RunnerMode } from './runner';
 
 export default class Service {
   protected environments: HashMap<Environment> = {};
 
-  constructor(public projectName: string, public config: IService) {
+  constructor(public projectName: string, public config: ServiceConfig) {
     if (!Object.keys(config.environments).length) {
       throw new Error('at least 1 environment must be defined');
     }
     Object.entries(config.environments).forEach(
-      ([key, value]: [string, IEnvironment]) => {
+      ([key, value]: [string, EnvironmentConfig]) => {
         this.environments[key] = new Environment(projectName, value);
       }
     );
   }
 
   async run(environmentName: string, options: Partial<ServiceRunOptions> = {}) {
-    const { daemon } = {
-      daemon: false,
+    const { mode } = {
+      mode: RunnerMode.Foreground,
       ...options
     };
     if (!environmentName) {
@@ -31,7 +35,7 @@ export default class Service {
     if (!environment) {
       throw new Error(`environment '${environmentName}' does not exist`);
     }
-    return environment.run({ daemon });
+    return environment.run({ mode });
   }
 
   async stop(
@@ -61,9 +65,7 @@ export default class Service {
 }
 
 export interface ServiceRunOptions {
-  daemon: boolean;
+  mode: RunnerMode;
 }
 
-export interface ServiceStopOptions {
-  daemon: boolean;
-}
+export interface ServiceStopOptions {}
