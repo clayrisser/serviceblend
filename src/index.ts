@@ -22,8 +22,8 @@ export default class ServiceBlend {
       const matches = this.options.cwd.match(REGEX);
       this.options.projectName = [...(matches || [])]?.[0];
     }
-    process.on('SIGINT', this.onStop.bind(this));
-    process.on('SIGTERM', this.onStop.bind(this));
+    process.on('SIGINT', (code: string | number) => this.onStop(code));
+    process.on('SIGTERM', (code: string | number) => this.onStop(code));
   }
 
   async run(
@@ -87,12 +87,17 @@ export default class ServiceBlend {
     return this.config;
   }
 
-  async onStop() {
+  async onStop(code?: string | number, timeout = 5000) {
+    const t = setTimeout(() => {
+      process.exit();
+    }, timeout);
     await Promise.all(
       this._services.map(async (service: Service) => {
-        await service.onStop();
+        await service.onStop(code);
       })
     );
+    clearTimeout(t);
+    process.exit();
   }
 }
 

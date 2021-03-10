@@ -41,7 +41,10 @@ export default abstract class Apparatus<Declaration = HashMap> {
 
   abstract onStart(options?: ApparatusStartOptions): Promise<any>;
 
-  abstract onStop(options?: ApparatusStopOptions): Promise<any>;
+  abstract onStop(
+    options?: ApparatusStopOptions,
+    code?: string | number
+  ): Promise<any>;
 }
 
 export interface ApparatusDeclaration {}

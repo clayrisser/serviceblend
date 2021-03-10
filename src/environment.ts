@@ -26,8 +26,8 @@ export default class Environment {
     return this.apparatus.stop();
   }
 
-  async onStop() {
-    await this.apparatus.onStop();
+  async onStop(code?: string | number) {
+    await this.apparatus.onStop({}, code);
   }
 }
 

@@ -55,10 +55,10 @@ export default class Service {
     return environment.stop();
   }
 
-  async onStop() {
+  async onStop(code?: string | number) {
     await Promise.all(
       Object.values(this.environments).map(async (environment: Environment) => {
-        await environment.onStop();
+        await environment.onStop(code);
       })
     );
   }
