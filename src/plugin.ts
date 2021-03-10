@@ -1,3 +1,4 @@
+import { ExecaChildProcess } from 'execa';
 import { HashMap } from '~/types';
 
 export default abstract class Plugin<Declaration = HashMap> {
@@ -22,15 +23,22 @@ export default abstract class Plugin<Declaration = HashMap> {
     return this.onRun();
   }
 
-  abstract onRun(): Promise<any>;
+  async stop(_options: Partial<PluginStopOptions> = {}): Promise<any> {}
 
-  async onStop(): Promise<any> {
-    return undefined;
-  }
+  abstract onRun(): Promise<any>;
 }
 
 export interface PluginDeclaration {}
 
 export interface PluginRunOptions {
   daemon: boolean;
+}
+
+export interface PluginStopOptions {
+  daemon: boolean;
+}
+
+export interface PluginContext {
+  p: ExecaChildProcess;
+  tmpPath?: string;
 }

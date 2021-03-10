@@ -20,6 +20,7 @@ module.exports = {
     '@typescript-eslint/comma-dangle': ['error', 'never'],
     '@typescript-eslint/indent': 'off',
     '@typescript-eslint/no-shadow': 'off',
+    '@typescript-eslint/no-redeclare': 'off',
     '@typescript-eslint/no-use-before-define': 'off',
     'arrow-body-style': 'off',
     'class-methods-use-this': 'off',

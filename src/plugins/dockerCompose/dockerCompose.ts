@@ -1,145 +1,65 @@
-import { ExecaChildProcess, Options as ExecaOptions } from 'execa';
-import { Readable } from 'stream';
-import Command, { CommandOptions, RunCallback } from '~/command';
+import { StartOptions as Pm2StartOptions } from 'pm2';
+import Runner, { RunnerMode, Pm2Callback, RunnerOptions } from '~/runner';
 
-export default class DockerCompose extends Command<DockerComposeOptions> {
+export default class DockerCompose extends Runner<DockerComposeOptions> {
   command = 'docker-compose';
 
   constructor(options: Partial<DockerComposeOptions> = {}) {
-    super({
-      cwd: process.cwd(),
-      ...options
-    });
+    super({ ...options });
   }
 
-  async help(options?: ExecaOptions, cb?: RunCallback) {
-    return this.execute('--help', options, cb);
+  async help(pm2StartOptions?: Pm2StartOptions, cb?: Pm2Callback) {
+    return this.start(
+      ['--help'],
+      { mode: RunnerMode.Foreground },
+      {
+        cwd: this.options.cwd,
+        ...pm2StartOptions
+      },
+      cb
+    );
   }
 
   async run(
-    runOptions: Partial<RunOptions> = {},
-    options?: ExecaOptions,
-    cb?: RunCallback
-  ): Promise<string> {
-    const { detatch, stdout, stdin, serviceName } = {
+    options: Partial<RunOptions> = {},
+    pm2StartOptions?: Pm2StartOptions,
+    cb?: Pm2Callback
+  ) {
+    const { detatch, serviceName }: RunOptions = {
       detatch: false,
-      stdout: true,
-      ...runOptions
+      serviceName: '',
+      ...options
     };
-    return this.execute(
-      [
-        ...(this.options.file ? ['-f', this.options.file] : []),
-        'run',
-        ...(detatch ? ['-d'] : []),
-        '--',
-        serviceName || ''
-      ],
+    const args = [
+      ...(this.options.file ? ['-f', this.options.file] : []),
+      'run',
+      ...(detatch ? ['-d'] : []),
+      '--',
+      serviceName || ''
+    ];
+    return this.start(
+      args,
+      {},
       {
         cwd: this.options.cwd,
-        ...options
+        ...pm2StartOptions
       },
-      (p: ExecaChildProcess) => {
-        if (stdin) {
-          const stream = Readable.from([stdin]);
-          if (p.stdin) stream.pipe(p.stdin);
-        }
-        if (stdout) {
-          p.stderr?.pipe(process.stderr);
-          p.stdout?.pipe(process.stdout);
-        }
-        if (cb) cb(p);
-      }
-    );
-  }
-
-  async up(
-    upOptions: Partial<UpOptions> = {},
-    options?: ExecaOptions,
-    cb?: RunCallback
-  ): Promise<string> {
-    const { detatch, stdout, stdin } = {
-      detatch: false,
-      stdout: true,
-      ...upOptions
-    };
-    return this.execute(
-      [
-        ...(this.options.file ? ['-f', this.options.file] : []),
-        'up',
-        ...(detatch ? ['-d'] : [])
-      ],
-      {
-        cwd: this.options.cwd,
-        ...options
-      },
-      (p: ExecaChildProcess) => {
-        if (stdin) {
-          const stream = Readable.from([stdin]);
-          if (p.stdin) stream.pipe(p.stdin);
-        }
-        if (stdout) {
-          p.stderr?.pipe(process.stderr);
-          p.stdout?.pipe(process.stdout);
-        }
-        if (cb) cb(p);
-      }
-    );
-  }
-
-  async down(
-    downOptions: Partial<DownOptions> = {},
-    options?: ExecaOptions,
-    cb?: RunCallback
-  ): Promise<string> {
-    const { stdout, stdin } = {
-      stdout: true,
-      ...downOptions
-    };
-    return this.execute(
-      [...(this.options.file ? ['-f', this.options.file] : []), 'down'],
-      {
-        cwd: this.options.cwd,
-        ...options
-      },
-      (p: ExecaChildProcess) => {
-        if (stdin) {
-          const stream = Readable.from([stdin]);
-          if (p.stdin) stream.pipe(p.stdin);
-        }
-        if (stdout) {
-          p.stderr?.pipe(process.stderr);
-          p.stdout?.pipe(process.stdout);
-        }
-        if (cb) cb(p);
-      }
+      cb
     );
   }
 }
 
-export interface DockerComposeOptions extends CommandOptions {
-  cwd: string;
+export interface DockerComposeOptions extends RunnerOptions {
   file?: string;
 }
 
-export interface DownOptions {
-  stdin?: string;
-  stdout: boolean;
-}
+export interface DownOptions {}
 
 export interface UpOptions {
   detatch: boolean;
-  stdin?: string;
-  stdout: boolean;
 }
 
 export interface RunOptions {
   serviceName: string;
   detatch: boolean;
-  stdin?: string;
-  stdout: boolean;
-}
-
-export enum Output {
-  Yaml = 'yaml',
-  Json = 'json'
 }

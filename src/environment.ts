@@ -21,6 +21,10 @@ export default class Environment {
     return this.plugin.run({ daemon });
   }
 
+  async stop(_options: Partial<EnvironmentStopOptions> = {}) {
+    return this.plugin.stop();
+  }
+
   async onStop() {
     await this.plugin.onStop();
   }
@@ -29,3 +33,5 @@ export default class Environment {
 export interface EnvironmentRunOptions {
   daemon: boolean;
 }
+
+export interface EnvironmentStopOptions {}

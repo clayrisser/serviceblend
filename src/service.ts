@@ -34,6 +34,23 @@ export default class Service {
     return environment.run({ daemon });
   }
 
+  async stop(
+    environmentName: string,
+    _options: Partial<ServiceStopOptions> = {}
+  ) {
+    if (!environmentName) {
+      environmentName = Object.keys(this.environments)?.[0];
+      if (!environmentName) {
+        throw new Error('at least 1 environment must be defined');
+      }
+    }
+    const environment = this.environments[environmentName];
+    if (!environment) {
+      throw new Error(`environment '${environmentName}' does not exist`);
+    }
+    return environment.stop();
+  }
+
   async onStop() {
     await Promise.all(
       Object.values(this.environments).map(async (environment: Environment) => {
@@ -44,5 +61,9 @@ export default class Service {
 }
 
 export interface ServiceRunOptions {
+  daemon: boolean;
+}
+
+export interface ServiceStopOptions {
   daemon: boolean;
 }

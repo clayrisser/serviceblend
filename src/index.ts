@@ -43,6 +43,24 @@ export default class ServiceBlend {
     );
   }
 
+  async stop(serviceName: string, options: Partial<StopOptions> = {}) {
+    const service = await this.getService(
+      this.options.projectName,
+      serviceName
+    );
+    this._services.push(service);
+    return service.stop(
+      options.environmentName ||
+        this.options.defaultEnvironmentName ||
+        ((service.config.default as unknown) as string),
+      {
+        ...(typeof options.daemon === 'undefined'
+          ? {}
+          : { daemon: options.daemon })
+      }
+    );
+  }
+
   async getConfig(): Promise<TConfig> {
     if (this.config) return this.config;
     return this._loadConfig();
