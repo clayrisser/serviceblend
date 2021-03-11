@@ -7,8 +7,7 @@ export default class Stop extends Command {
   static examples = ['$ serviceblend stop'];
 
   static flags: flags.Input<any> = {
-    environment: flags.string({ char: 'e', required: false }),
-    project: flags.string({ char: 'p', required: false })
+    environment: flags.string({ char: 'e', required: false })
   };
 
   static strict = false;
@@ -39,8 +38,6 @@ export default class Stop extends Command {
           }
         : {})
     });
-    await serviceBlend.stop(serviceName, {
-      environmentName
-    });
+    await serviceBlend.stop(serviceName, { environmentName });
   }
 }

@@ -65,7 +65,7 @@ export default class ServiceBlend {
   ) {
     const stopOptions: ServiceBlendStopOptions = { ...options };
     const service = this._services[serviceName];
-    return service.stop(
+    await service.stop(
       stopOptions.environmentName ||
         this.options.defaultEnvironmentName ||
         service.config.default ||

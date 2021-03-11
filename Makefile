@@ -166,7 +166,7 @@ test-watch: ~lint
 start: ~format
 	@$(MAKE) -s +start
 +start:
-	@cd example && ../$(BABEL_NODE) --extensions '.ts,.tsx' ../bin/serviceblend $(ARGS)
+	@cd example && node ../bin/serviceblend $(ARGS)
 
 .PHONY: clean
 clean:

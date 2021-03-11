@@ -17,6 +17,7 @@
     "mjs",
     "mkdirs",
     "mkdtemp",
+    "namespace",
     "plusplus",
     "proc",
     "redeclare",

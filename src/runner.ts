@@ -60,7 +60,7 @@ export default abstract class Runner<Options = RunnerOptions> {
       ...options
     };
     await this._pm2Connect();
-    if (mode !== RunnerMode.Detatched && (await this.pm2Exits(true))) {
+    if (mode !== RunnerMode.Detatched && (await this.pm2Exists(true))) {
       await this._pm2Delete();
     }
     const processDescriptionPromise = this._pm2Start(
@@ -82,7 +82,10 @@ export default abstract class Runner<Options = RunnerOptions> {
 
   protected async pm2Stop(): Promise<ProcessDescription | undefined> {
     await this._pm2Connect();
-    if (!(await this.pm2Exits(true))) return undefined;
+    if (!(await this.pm2Exists(true))) {
+      this._pm2Disconnect();
+      return undefined;
+    }
     const proc = await this._pm2Stop();
     this._pm2Disconnect();
     return proc;
@@ -90,20 +93,23 @@ export default abstract class Runner<Options = RunnerOptions> {
 
   protected async pm2Delete(): Promise<ProcessDescription | undefined> {
     await this._pm2Connect();
-    if (!(await this.pm2Exits(true))) return undefined;
+    if (!(await this.pm2Exists(true))) {
+      this._pm2Disconnect();
+      return undefined;
+    }
     const proc = await this._pm2Delete();
     this._pm2Disconnect();
     return proc;
   }
 
-  protected async pm2Restart(): Promise<ProcessDescription> {
+  protected async pm2Restart(): Promise<ProcessDescription | undefined> {
     await this._pm2Connect();
-    const proc = await this._pm2Restart();
+    const processDescription = await this._pm2Restart();
     this._pm2Disconnect();
-    return proc;
+    return processDescription;
   }
 
-  protected async pm2Exits(connected = false): Promise<boolean> {
+  protected async pm2Exists(connected = false): Promise<boolean> {
     if (!connected) await this._pm2Connect();
     const processDescription = await this._pm2Describe();
     if (!connected) this._pm2Disconnect();
@@ -115,6 +121,7 @@ export default abstract class Runner<Options = RunnerOptions> {
     const processDescription = await this._pm2Describe();
     if (!connected) this._pm2Disconnect();
     return (
+      typeof processDescription !== 'undefined' &&
       processDescription &&
       processDescription?.pm2_env?.status !== 'errored' &&
       processDescription?.pm2_env?.status !== 'stopped'
@@ -185,12 +192,17 @@ export default abstract class Runner<Options = RunnerOptions> {
     });
   }
 
-  private async _pm2Describe(): Promise<ProcessDescription> {
+  private async _pm2Describe(): Promise<ProcessDescription | undefined> {
     return new Promise((resolve, reject) => {
       pm2.describe(
         this._name,
         (err: Error, processDescriptions: ProcessDescription[]) => {
-          if (err) return reject(err);
+          if (err) {
+            if (err.message === 'process or namespace not found') {
+              return resolve(undefined);
+            }
+            return reject(err);
+          }
           return resolve(
             Array.isArray(processDescriptions)
               ? processDescriptions?.[0]
@@ -217,7 +229,7 @@ export default abstract class Runner<Options = RunnerOptions> {
   ): Promise<ProcessDescription> {
     let { command } = this;
     let interpreter = 'sh';
-    if (mode === RunnerMode.Foreground) {
+    if (mode === RunnerMode.Terminal) {
       interpreter = 'node';
       const openTerminalPkgPath = require.resolve('open-terminal/package.json');
       const openTerminalPath = path.resolve(
@@ -257,28 +269,43 @@ export default abstract class Runner<Options = RunnerOptions> {
     });
   }
 
-  private async _pm2Stop(): Promise<ProcessDescription> {
+  private async _pm2Stop(): Promise<ProcessDescription | undefined> {
     return new Promise((resolve, reject) => {
       pm2.stop(this._name, (err: Error, proc: ProcessDescription) => {
-        if (err) return reject(err);
+        if (err) {
+          if (err.message === 'process or namespace not found') {
+            return resolve(undefined);
+          }
+          return reject(err);
+        }
         return resolve(proc);
       });
     });
   }
 
-  private async _pm2Delete(): Promise<ProcessDescription> {
+  private async _pm2Delete(): Promise<ProcessDescription | undefined> {
     return new Promise((resolve, reject) => {
       pm2.delete(this._name, (err: Error, proc: ProcessDescription) => {
-        if (err) return reject(err);
+        if (err) {
+          if (err.message === 'process or namespace not found') {
+            return resolve(undefined);
+          }
+          return reject(err);
+        }
         return resolve(proc);
       });
     });
   }
 
-  private async _pm2Restart(): Promise<ProcessDescription> {
+  private async _pm2Restart(): Promise<ProcessDescription | undefined> {
     return new Promise((resolve, reject) => {
       pm2.restart(this._name, (err: Error, proc: ProcessDescription) => {
-        if (err) return reject(err);
+        if (err) {
+          if (err.message === 'process or namespace not found') {
+            return resolve(undefined);
+          }
+          return reject(err);
+        }
         return resolve(proc);
       });
     });

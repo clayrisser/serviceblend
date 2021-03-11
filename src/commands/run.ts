@@ -8,7 +8,7 @@ export default class Run extends Command {
   static examples = ['$ serviceblend run'];
 
   static flags: flags.Input<any> = {
-    detached: flags.boolean({ required: false }),
+    detached: flags.boolean({ char: 'd', required: false }),
     environment: flags.string({ char: 'e', required: false }),
     project: flags.string({ char: 'p', required: false }),
     terminal: flags.boolean({ char: 't', required: false })
