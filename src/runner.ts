@@ -60,7 +60,9 @@ export default abstract class Runner<Options = RunnerOptions> {
       ...options
     };
     await this._pm2Connect();
-    if (mode !== RunnerMode.Detatched) await this._pm2Delete();
+    if (mode !== RunnerMode.Detatched && (await this.pm2Exits(true))) {
+      await this._pm2Delete();
+    }
     const processDescriptionPromise = this._pm2Start(
       Array.isArray(args) ? args : [args],
       {
