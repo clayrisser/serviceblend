@@ -48,7 +48,7 @@ export default abstract class Runner<Options = RunnerOptions> {
     );
   }
 
-  async start(
+  protected async pm2Start(
     args: string | string[] = [],
     options: Partial<RunnerStartOptions>,
     pm2StartOptions: Partial<Pm2StartOptions> = {},
@@ -77,25 +77,45 @@ export default abstract class Runner<Options = RunnerOptions> {
     return processDescription;
   }
 
-  async stop(): Promise<ProcessDescription> {
+  protected async pm2Stop(): Promise<ProcessDescription | undefined> {
     await this._pm2Connect();
+    if (!(await this.pm2Exits(true))) return undefined;
     const proc = await this._pm2Stop();
     this._pm2Disconnect();
     return proc;
   }
 
-  async delete(): Promise<ProcessDescription> {
+  protected async pm2Delete(): Promise<ProcessDescription | undefined> {
     await this._pm2Connect();
+    if (!(await this.pm2Exits(true))) return undefined;
     const proc = await this._pm2Delete();
     this._pm2Disconnect();
     return proc;
   }
 
-  async restart(): Promise<ProcessDescription> {
+  protected async pm2Restart(): Promise<ProcessDescription> {
     await this._pm2Connect();
     const proc = await this._pm2Restart();
     this._pm2Disconnect();
     return proc;
+  }
+
+  protected async pm2Exits(connected = false): Promise<boolean> {
+    if (!connected) await this._pm2Connect();
+    const processDescription = await this._pm2Describe();
+    if (!connected) this._pm2Disconnect();
+    return !!processDescription;
+  }
+
+  protected async pm2Alive(connected = false): Promise<boolean> {
+    if (!connected) await this._pm2Connect();
+    const processDescription = await this._pm2Describe();
+    if (!connected) this._pm2Disconnect();
+    return (
+      processDescription &&
+      (processDescription?.pm2_env?.status === 'online' ||
+        processDescription?.pm2_env?.status === 'launching')
+    );
   }
 
   private async _tail() {
@@ -123,12 +143,7 @@ export default abstract class Runner<Options = RunnerOptions> {
     await new Promise((resolve, reject) => {
       const interval = setInterval(async () => {
         try {
-          const processDescription = await this._pm2Describe(this._name);
-          if (
-            !processDescription ||
-            (processDescription?.pm2_env?.status !== 'online' &&
-              processDescription?.pm2_env?.status !== 'launching')
-          ) {
+          if (!(await this.pm2Alive(true))) {
             clearInterval(interval);
             tails.forEach((tail: Tail) => tail.unwatch());
             return resolve(undefined);
@@ -167,12 +182,10 @@ export default abstract class Runner<Options = RunnerOptions> {
     });
   }
 
-  private async _pm2Describe(
-    process: string | number
-  ): Promise<ProcessDescription> {
+  private async _pm2Describe(): Promise<ProcessDescription> {
     return new Promise((resolve, reject) => {
       pm2.describe(
-        process,
+        this._name,
         (err: Error, processDescriptions: ProcessDescription[]) => {
           if (err) return reject(err);
           return resolve(

@@ -9,7 +9,7 @@ export default class DockerCompose extends Runner<DockerComposeOptions> {
   }
 
   async help(pm2StartOptions?: Pm2StartOptions, cb?: Pm2Callback) {
-    return this.start(
+    return this.pm2Start(
       ['--help'],
       { mode: RunnerMode.Foreground },
       {
@@ -36,7 +36,7 @@ export default class DockerCompose extends Runner<DockerComposeOptions> {
       '--',
       serviceName || ''
     ];
-    return this.start(
+    return this.pm2Start(
       args,
       { mode },
       {
@@ -45,6 +45,37 @@ export default class DockerCompose extends Runner<DockerComposeOptions> {
       },
       cb
     );
+  }
+
+  async stop(
+    options: Partial<DockerComposeStopOptions> = {},
+    pm2StartOptions?: Pm2StartOptions,
+    cb?: Pm2Callback
+  ) {
+    const { serviceName }: DockerComposeStopOptions = {
+      serviceName: '',
+      ...options
+    };
+    const args = [
+      ...(this.options.file ? ['-f', this.options.file] : []),
+      'stop',
+      '--',
+      serviceName || ''
+    ];
+    return this.pm2Start(
+      args,
+      { mode: RunnerMode.Foreground },
+      {
+        cwd: this.options.cwd,
+        ...pm2StartOptions
+      },
+      cb
+    );
+  }
+
+  async onStop() {
+    await this.pm2Stop();
+    return this.pm2Delete();
   }
 }
 
@@ -55,4 +86,8 @@ export interface DockerComposeOptions extends RunnerOptions {
 export interface DockerComposeRunOptions {
   serviceName: string;
   mode: RunnerMode;
+}
+
+export interface DockerComposeStopOptions {
+  serviceName: string;
 }

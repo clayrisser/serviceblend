@@ -26,10 +26,10 @@ export const Config = t.type({
 });
 export type Config = t.TypeOf<typeof Config>;
 
-export async function loadConfig(config: string | Config): Promise<Config> {
+export function loadConfig(config: string | Config): Config {
   let configObj = config as Config;
   if (typeof config === 'string') {
-    const configStr = (await fs.readFile(config)).toString();
+    const configStr = fs.readFileSync(config).toString();
     configObj = YAML.parse(configStr);
   }
   validate(configObj, Config);

@@ -3,6 +3,7 @@ import fs from 'fs-extra';
 import os from 'os';
 import path from 'path';
 import { Proc } from 'pm2';
+import Environment from '~/environment';
 import Apparatus, {
   ApparatusStartOptions,
   ApparatusDeclaration
@@ -12,30 +13,31 @@ import DockerCompose from './dockerCompose';
 export default class DockerComposeApparatus extends Apparatus<DockerComposeApparatusDeclaration> {
   static apparatusName = 'docker-compose';
 
-  async onStart({ mode }: ApparatusStartOptions) {
+  private dockerCompose: DockerCompose;
+
+  constructor(
+    environment: Environment,
+    declaration: Partial<DockerComposeApparatusDeclaration> = {}
+  ) {
+    super(environment, declaration);
     const name = `${this.environment.service.serviceName} ${this.environment.environmentName}`;
     if (typeof this.declaration.compose === 'string') {
-      const dockerCompose = new DockerCompose({
+      this.dockerCompose = new DockerCompose({
         file: path.resolve(process.cwd(), this.declaration.compose),
         name
       });
-      return dockerCompose.run(
-        {
-          serviceName: this.declaration.service,
-          mode
-        },
-        {},
-        (proc: Proc) => this.registerContext('hello', { proc })
+    } else {
+      const tmpPath = fs.mkdtempSync(`${os.tmpdir()}/`);
+      this.dockerCompose = new DockerCompose({ cwd: tmpPath, name });
+      fs.writeFileSync(
+        path.resolve(tmpPath, 'docker-compose.yaml'),
+        YAML.stringify(this.declaration)
       );
     }
-    const tmpPath = await fs.mkdtemp(`${os.tmpdir()}/`);
-    await fs.mkdirs(tmpPath);
-    await fs.writeFile(
-      path.resolve(tmpPath, 'docker-compose.yaml'),
-      YAML.stringify(this.declaration)
-    );
-    const dockerCompose = new DockerCompose({ cwd: tmpPath, name });
-    return dockerCompose.run(
+  }
+
+  async onStart({ mode }: ApparatusStartOptions) {
+    return this.dockerCompose.run(
       {
         serviceName: this.declaration.service,
         mode
@@ -46,7 +48,7 @@ export default class DockerComposeApparatus extends Apparatus<DockerComposeAppar
   }
 
   async onStop() {
-    return undefined;
+    await this.dockerCompose.onStop();
   }
 }
 
