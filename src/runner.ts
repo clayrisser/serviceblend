@@ -135,7 +135,7 @@ export default abstract class Runner<Options = RunnerOptions> {
     );
     tails.push(
       this._tailFile(this._paths.stderr, (line: string) => {
-        logger.error(`${id} E | ${line}`);
+        logger.error(`${id} | ${line}`);
       })
     );
     tails.forEach((tail: Tail) => tail.watch());

@@ -8,9 +8,10 @@ export default class Run extends Command {
   static examples = ['$ serviceblend run'];
 
   static flags: flags.Input<any> = {
-    mode: flags.boolean({ char: 'm', required: false }),
+    detatched: flags.boolean({ required: false }),
     environment: flags.string({ char: 'e', required: false }),
-    project: flags.string({ char: 'p', required: false })
+    project: flags.string({ char: 'p', required: false }),
+    terminal: flags.boolean({ char: 't', required: false })
   };
 
   static strict = false;
@@ -41,9 +42,12 @@ export default class Run extends Command {
           }
         : {})
     });
+    let mode = RunnerMode.Foreground;
+    if (flags.detached) mode = RunnerMode.Detatched;
+    if (flags.terminal) mode = RunnerMode.Terminal;
     await serviceBlend.run(serviceName, {
       environmentName,
-      ...(flags.mode ? { mode: flags.mode as RunnerMode } : {})
+      mode
     });
   }
 }
