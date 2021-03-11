@@ -60,13 +60,14 @@ export default abstract class Runner<Options = RunnerOptions> {
       ...options
     };
     await this._pm2Connect();
+    if (mode !== RunnerMode.Detatched) await this._pm2Delete();
     const processDescriptionPromise = this._pm2Start(
       Array.isArray(args) ? args : [args],
       {
         cwd,
         ...pm2StartOptions
       },
-      mode === RunnerMode.Terminal
+      mode
     );
     if (mode !== RunnerMode.Detatched) await this._tail();
     const processDescription = await processDescriptionPromise;
@@ -210,11 +211,11 @@ export default abstract class Runner<Options = RunnerOptions> {
   private async _pm2Start(
     args: string[] = [],
     pm2StartOptions: Pm2StartOptions = {},
-    openTerminal = false
+    mode = RunnerMode.Foreground
   ): Promise<ProcessDescription> {
     let { command } = this;
     let interpreter = 'sh';
-    if (openTerminal) {
+    if (mode === RunnerMode.Foreground) {
       interpreter = 'node';
       const openTerminalPkgPath = require.resolve('open-terminal/package.json');
       const openTerminalPath = path.resolve(
@@ -228,14 +229,18 @@ export default abstract class Runner<Options = RunnerOptions> {
       ...pm2StartOptions,
       autorestart: false,
       args,
-      error: this._paths.stderr,
       instances: 1,
       interpreter,
       max_restarts: 1,
       merge_logs: true,
       name: this._name,
-      output: this._paths.stdout,
-      script: command
+      script: command,
+      ...(mode !== RunnerMode.Detatched
+        ? {
+            error: this._paths.stderr,
+            output: this._paths.stdout
+          }
+        : {})
     };
     return new Promise((resolve, reject) => {
       pm2.start(startOptions, (err: Error, proc: Proc) => {
