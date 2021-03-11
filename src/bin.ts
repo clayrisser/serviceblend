@@ -3,4 +3,7 @@ import { run } from '@oclif/command';
 
 (async () => {
   await run();
-})().catch(handle);
+})().catch((err: Error) => {
+  handle(err);
+  process.exit(1);
+});

@@ -60,8 +60,15 @@ export default class Run extends Command {
               ...optionBlocks.reduce(
                 (
                   options: Partial<ServiceBlendRunOptions>,
-                  _optionBlock: string
+                  optionBlock: string
                 ) => {
+                  const optionBlockArr = optionBlock.split('=');
+                  const key = optionBlockArr.shift();
+                  if (!key) return options;
+                  const value = optionBlockArr.length
+                    ? optionBlockArr.join('=')
+                    : true;
+                  options[key] = value;
                   return options;
                 },
                 {}

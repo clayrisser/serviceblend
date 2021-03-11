@@ -41,29 +41,39 @@ export default class ServiceBlend {
   }
 
   async run(services: HashMap<Partial<ServiceBlendRunOptions>>) {
-    return Promise.all(
-      Object.entries(services).map(
-        async ([serviceName, options]: [
-          string,
-          Partial<ServiceBlendRunOptions>
-        ]) => {
-          return this.runService(serviceName, options);
-        }
-      )
-    );
+    try {
+      await Promise.all(
+        Object.entries(services).map(
+          async ([serviceName, options]: [
+            string,
+            Partial<ServiceBlendRunOptions>
+          ]) => {
+            return this.runService(serviceName, options);
+          }
+        )
+      );
+    } catch (err) {
+      await this.onStop(undefined, false);
+      throw err;
+    }
   }
 
   async stop(services: HashMap<Partial<ServiceBlendStopOptions>>) {
-    return Promise.all(
-      Object.entries(services).map(
-        async ([serviceName, options]: [
-          string,
-          Partial<ServiceBlendStopOptions>
-        ]) => {
-          return this.stopService(serviceName, options);
-        }
-      )
-    );
+    try {
+      await Promise.all(
+        Object.entries(services).map(
+          async ([serviceName, options]: [
+            string,
+            Partial<ServiceBlendStopOptions>
+          ]) => {
+            return this.stopService(serviceName, options);
+          }
+        )
+      );
+    } catch (err) {
+      await this.onStop(undefined, false);
+      throw err;
+    }
   }
 
   async runService(
@@ -76,6 +86,9 @@ export default class ServiceBlend {
       ...options
     };
     const service = this._services[serviceName];
+    if (!service) {
+      throw new Error(`service '${serviceName}' does not exists`);
+    }
     return service.run(
       runOptions.environmentName ||
         this.options.defaultEnvironmentName ||
@@ -108,18 +121,19 @@ export default class ServiceBlend {
     return new Service(this, projectName, serviceName, serviceConfig);
   }
 
-  async onStop(code?: string | number, timeout = 5000) {
+  async onStop(code?: string | number, exit = true, timeout = 5000) {
     const t = setTimeout(() => {
-      process.exit();
+      if (exit) process.exit();
     }, timeout);
     await Promise.all(
       this._trackedServiceNames.map(async (serviceName: string) => {
         const service = this._services[serviceName];
+        if (!service) return;
         await service.onStop(code);
       })
     );
     clearTimeout(t);
-    process.exit();
+    if (exit) process.exit();
   }
 
   registerService(serviceName: string) {
