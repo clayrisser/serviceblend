@@ -1,5 +1,6 @@
 import { Command, flags } from '@oclif/command';
-import ServiceBlend from '~/index';
+import ServiceBlend, { ServiceBlendRunOptions } from '~/index';
+import { HashMap } from '~/types';
 import { RunnerMode } from '~/runner';
 
 export default class Run extends Command {
@@ -26,10 +27,6 @@ export default class Run extends Command {
 
   async run() {
     const { flags } = this.parse(Run);
-    const args = (
-      this.argv.filter((arg: string) => arg[0] !== '-')?.[0] || ''
-    ).split('=');
-    const [serviceName, environmentName] = [args?.[0], args?.[1]];
     const serviceBlend = new ServiceBlend({
       ...(flags.environment
         ? {
@@ -45,9 +42,36 @@ export default class Run extends Command {
     let mode = RunnerMode.Foreground;
     if (flags.detached) mode = RunnerMode.Detatched;
     if (flags.terminal) mode = RunnerMode.Terminal;
-    await serviceBlend.run(serviceName, {
-      environmentName,
-      mode
-    });
+    await serviceBlend.run(
+      this.argv
+        .filter((arg: string) => arg[0] !== '-')
+        .reduce(
+          (services: HashMap<Partial<ServiceBlendRunOptions>>, arg: string) => {
+            const argArr = arg.split(':');
+            const serviceBlock = argArr.shift()?.split('=') || [];
+            const optionBlocks = argArr.join(':').split(',');
+            const [serviceName, environmentName] = [
+              serviceBlock?.[0],
+              serviceBlock?.[1]
+            ];
+            const options: Partial<ServiceBlendRunOptions> = {
+              environmentName,
+              mode,
+              ...optionBlocks.reduce(
+                (
+                  options: Partial<ServiceBlendRunOptions>,
+                  _optionBlock: string
+                ) => {
+                  return options;
+                },
+                {}
+              )
+            };
+            services[serviceName] = options;
+            return services;
+          },
+          {}
+        )
+    );
   }
 }
