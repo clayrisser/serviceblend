@@ -19,6 +19,7 @@
     "mkdtemp",
     "plusplus",
     "proc",
+    "redeclare",
     "serviceblend",
     "stderr",
     "stdin",
