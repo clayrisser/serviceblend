@@ -1,5 +1,6 @@
 import Environment from '~/environment';
 import { HashMap } from '~/types';
+import ServiceBlend from '~/index';
 import {
   Service as ServiceConfig,
   Environment as EnvironmentConfig
@@ -9,13 +10,22 @@ import { RunnerMode } from './runner';
 export default class Service {
   protected environments: HashMap<Environment> = {};
 
-  constructor(public projectName: string, public config: ServiceConfig) {
+  constructor(
+    public serviceBlend: ServiceBlend,
+    public projectName: string,
+    public serviceName: string,
+    public config: ServiceConfig
+  ) {
     if (!Object.keys(config.environments).length) {
       throw new Error('at least 1 environment must be defined');
     }
     Object.entries(config.environments).forEach(
-      ([key, value]: [string, EnvironmentConfig]) => {
-        this.environments[key] = new Environment(projectName, value);
+      ([environmentName, environmentConfig]: [string, EnvironmentConfig]) => {
+        this.environments[environmentName] = new Environment(
+          this,
+          environmentName,
+          environmentConfig
+        );
       }
     );
   }

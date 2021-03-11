@@ -1,14 +1,19 @@
+import Apparatus from '~/apparatus';
+import Service from '~/service';
 import { Environment as EnvironmentConfig } from '~/config';
 import { getApparatus } from '~/apparatuses';
-import Apparatus from '~/apparatus';
 import { RunnerMode } from './runner';
 
 export default class Environment {
   protected apparatus: Apparatus;
 
-  constructor(public projectName: string, public config: EnvironmentConfig) {
+  constructor(
+    public service: Service,
+    public environmentName: string,
+    public config: EnvironmentConfig
+  ) {
     this.apparatus = getApparatus(
-      projectName,
+      this,
       (config.apparatus as unknown) as string,
       config.definition
     );

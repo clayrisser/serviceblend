@@ -21,7 +21,7 @@ export default abstract class Runner<Options = RunnerOptions> {
 
   private _paths: RunnerPaths;
 
-  constructor(options: Partial<Options> = {}) {
+  constructor(options: Options) {
     const tmpPath = fs.mkdtempSync(`${os.tmpdir()}/`);
     this._paths = {
       stderr: path.resolve(tmpPath, 'stderr.log'),
@@ -31,21 +31,20 @@ export default abstract class Runner<Options = RunnerOptions> {
     this.options = ({
       debug: false,
       cwd: process.cwd(),
-      projectName: '',
       ...options
     } as unknown) as Options;
-    if (!((this.options as unknown) as RunnerOptions).projectName.length) {
+    if (!((this.options as unknown) as RunnerOptions).projectName) {
       const REGEX = /[^/]+$/g;
-      const matches = ((this.options as unknown) as RunnerOptions).cwd.match(
-        REGEX
-      );
+      const matches = (
+        ((this.options as unknown) as RunnerOptions)?.cwd || process.cwd()
+      ).match(REGEX);
       ((this.options as unknown) as RunnerOptions).projectName = [
         ...(matches || [])
       ]?.[0];
     }
     const colorHash = new ColorHash({ lightness: 0.5 });
     this.color = colorHash.hex(
-      ((this.options as unknown) as RunnerOptions).projectName
+      ((this.options as unknown) as RunnerOptions).projectName || ''
     );
   }
 
@@ -55,7 +54,7 @@ export default abstract class Runner<Options = RunnerOptions> {
     pm2StartOptions: Partial<Pm2StartOptions> = {},
     cb?: Pm2Callback
   ): Promise<ProcessDescription> {
-    const { cwd, projectName } = (this.options as unknown) as RunnerOptions;
+    const { cwd } = (this.options as unknown) as RunnerOptions;
     const { mode }: RunnerStartOptions = {
       mode: RunnerMode.Foreground,
       ...options
@@ -70,64 +69,12 @@ export default abstract class Runner<Options = RunnerOptions> {
     );
     if (cb) cb(processDescription);
     if (mode === RunnerMode.Foreground) {
-      const id = chalk.hex(this.color).bold(`${projectName} ${this.command}`);
-      if (!(await fs.pathExists(this._paths.stderr))) {
-        await fs.writeFile(this._paths.stderr, '');
-      }
-      if (!(await fs.pathExists(this._paths.stdout))) {
-        await fs.writeFile(this._paths.stdout, '');
-      }
-      const tails: Tail[] = [];
-      tails.push(
-        this.tail(this._paths.stdout, (line: string) => {
-          logger.info(`${id} | ${line}`);
-        })
-      );
-      tails.push(
-        this.tail(this._paths.stderr, (line: string) => {
-          logger.error(`${id} | ${line}`);
-        })
-      );
-      tails.forEach((tail: Tail) => tail.watch());
-      await new Promise((r) => setTimeout(r, 1000));
-      await new Promise((resolve, reject) => {
-        const interval = setInterval(async () => {
-          try {
-            const processDescription = await this._pm2Describe(this._name);
-            if (
-              !processDescription ||
-              (processDescription?.pm2_env?.status !== 'online' &&
-                processDescription?.pm2_env?.status !== 'launching')
-            ) {
-              clearInterval(interval);
-              tails.forEach((tail: Tail) => tail.unwatch());
-              return resolve(undefined);
-            }
-          } catch (err) {
-            return reject(err);
-          }
-          return null;
-        }, 1000);
-      });
+      await this._tail();
       await this._pm2Delete();
     }
     await fs.remove(this._paths.tmp);
     this._pm2Disconnect();
     return processDescription;
-  }
-
-  tail(logPath: string, cb?: (line: string, lines: string[]) => any): Tail {
-    const lines: string[] = [];
-    const tail = new Tail(logPath);
-    tail.on('line', (data: any) => {
-      const line = data.toString();
-      lines.push(line);
-      if (cb) cb(line, lines);
-    });
-    tail.on('error', (err: Error) => {
-      throw err;
-    });
-    return tail;
   }
 
   async stop(): Promise<ProcessDescription> {
@@ -149,6 +96,66 @@ export default abstract class Runner<Options = RunnerOptions> {
     const proc = await this._pm2Restart();
     this._pm2Disconnect();
     return proc;
+  }
+
+  private async _tail() {
+    const options = (this.options as unknown) as RunnerOptions;
+    const id = chalk.hex(this.color).bold(options.name);
+    if (!(await fs.pathExists(this._paths.stderr))) {
+      await fs.writeFile(this._paths.stderr, '');
+    }
+    if (!(await fs.pathExists(this._paths.stdout))) {
+      await fs.writeFile(this._paths.stdout, '');
+    }
+    const tails: Tail[] = [];
+    tails.push(
+      this._tailFile(this._paths.stdout, (line: string) => {
+        logger.info(`${id} | ${line}`);
+      })
+    );
+    tails.push(
+      this._tailFile(this._paths.stderr, (line: string) => {
+        logger.error(`${id} | ${line}`);
+      })
+    );
+    tails.forEach((tail: Tail) => tail.watch());
+    await new Promise((r) => setTimeout(r, 1000));
+    await new Promise((resolve, reject) => {
+      const interval = setInterval(async () => {
+        try {
+          const processDescription = await this._pm2Describe(this._name);
+          if (
+            !processDescription ||
+            (processDescription?.pm2_env?.status !== 'online' &&
+              processDescription?.pm2_env?.status !== 'launching')
+          ) {
+            clearInterval(interval);
+            tails.forEach((tail: Tail) => tail.unwatch());
+            return resolve(undefined);
+          }
+        } catch (err) {
+          return reject(err);
+        }
+        return null;
+      }, 1000);
+    });
+  }
+
+  private _tailFile(
+    logPath: string,
+    cb?: (line: string, lines: string[]) => any
+  ): Tail {
+    const lines: string[] = [];
+    const tail = new Tail(logPath);
+    tail.on('line', (data: any) => {
+      const line = data.toString();
+      lines.push(line);
+      if (cb) cb(line, lines);
+    });
+    tail.on('error', (err: Error) => {
+      throw err;
+    });
+    return tail;
   }
 
   private async _pm2Connect() {
@@ -184,7 +191,7 @@ export default abstract class Runner<Options = RunnerOptions> {
 
   private get _name() {
     const options = (this.options as unknown) as RunnerOptions;
-    return `${options.projectName}_${this.command}`;
+    return `${options.projectName}_${options.name}`.replace(/\s/g, '_');
   }
 
   private async _pm2Start(
@@ -246,9 +253,10 @@ export default abstract class Runner<Options = RunnerOptions> {
 }
 
 export interface RunnerOptions {
-  cwd: string;
-  debug: boolean;
-  projectName: string;
+  cwd?: string;
+  debug?: boolean;
+  name: string;
+  projectName?: string;
 }
 
 export type Pm2Callback = (processDescription: ProcessDescription) => any;

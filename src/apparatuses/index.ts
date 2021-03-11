@@ -1,4 +1,5 @@
 import Apparatus, { ApparatusDeclaration } from '~/apparatus';
+import Environment from '~/environment';
 import { HashMap } from '~/types';
 import Command from './command';
 import DockerCompose from './dockerCompose';
@@ -21,7 +22,7 @@ const apparatuses: HashMap<typeof Apparatus> = ([
 );
 
 export function getApparatus<P = Apparatus, C = ApparatusDeclaration>(
-  projectName: string,
+  environment: Environment,
   apparatusName: string,
   apparatusConfig: C
 ): P {
@@ -29,7 +30,7 @@ export function getApparatus<P = Apparatus, C = ApparatusDeclaration>(
   if (!ApparatusClass) {
     throw new Error(`apparatus '${apparatusName}' does not exist`);
   }
-  return new ApparatusClass(projectName, apparatusConfig) as P;
+  return new ApparatusClass(environment, apparatusConfig) as P;
 }
 
 export { Command, DockerCompose, Endpoint, Proxy, Supervisord };

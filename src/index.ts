@@ -78,7 +78,7 @@ export default class ServiceBlend {
     if (!serviceConfig) {
       throw new Error(`service '${serviceName}' does not exists`);
     }
-    return new Service(projectName, serviceConfig);
+    return new Service(this, projectName, serviceName, serviceConfig);
   }
 
   private async _loadConfig(): Promise<Config> {

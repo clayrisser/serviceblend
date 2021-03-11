@@ -4,7 +4,7 @@ import Runner, { RunnerMode, Pm2Callback, RunnerOptions } from '~/runner';
 export default class DockerCompose extends Runner<DockerComposeOptions> {
   command = 'docker-compose';
 
-  constructor(options: Partial<DockerComposeOptions> = {}) {
+  constructor(options: DockerComposeOptions) {
     super({ ...options });
   }
 

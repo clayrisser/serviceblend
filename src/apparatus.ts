@@ -1,4 +1,5 @@
 import { ProcessDescription } from 'pm2';
+import Environment from '~/environment';
 import { HashMap } from '~/types';
 import { RunnerMode } from '~/runner';
 
@@ -12,7 +13,7 @@ export default abstract class Apparatus<Declaration = HashMap> {
   private _contexts: HashMap<ApparatusContext> = {};
 
   constructor(
-    protected projectName: string,
+    public environment: Environment,
     declaration: Partial<Declaration> = {}
   ) {
     this.declaration = { ...declaration } as Declaration;
