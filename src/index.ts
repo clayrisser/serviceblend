@@ -46,7 +46,7 @@ export default class ServiceBlend {
   ) {
     this.registerService(serviceName);
     const runOptions: ServiceBlendRunOptions = {
-      mode: RunnerMode.Foreground,
+      mode: RunnerMode.Terminal,
       ...options
     };
     const service = this._services[serviceName];

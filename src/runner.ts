@@ -1,8 +1,8 @@
 import ColorHash from 'color-hash';
-import path from 'path';
 import chalk from 'chalk';
 import fs from 'fs-extra';
 import os from 'os';
+import path from 'path';
 import { Tail } from 'tail';
 import pm2, {
   ProcessDescription,
@@ -60,18 +60,18 @@ export default abstract class Runner<Options = RunnerOptions> {
       ...options
     };
     await this._pm2Connect();
-    const processDescription = await this._pm2Start(
+    const processDescriptionPromise = this._pm2Start(
       Array.isArray(args) ? args : [args],
       {
         cwd,
         ...pm2StartOptions
-      }
+      },
+      mode === RunnerMode.Terminal
     );
+    if (mode !== RunnerMode.Detatched) await this._tail();
+    const processDescription = await processDescriptionPromise;
     if (cb) cb(processDescription);
-    if (mode === RunnerMode.Foreground) {
-      await this._tail();
-      await this._pm2Delete();
-    }
+    if (mode !== RunnerMode.Detatched) await this._pm2Delete();
     await fs.remove(this._paths.tmp);
     this._pm2Disconnect();
     return processDescription;
@@ -113,8 +113,8 @@ export default abstract class Runner<Options = RunnerOptions> {
     if (!connected) this._pm2Disconnect();
     return (
       processDescription &&
-      (processDescription?.pm2_env?.status === 'online' ||
-        processDescription?.pm2_env?.status === 'launching')
+      processDescription?.pm2_env?.status !== 'errored' &&
+      processDescription?.pm2_env?.status !== 'stopped'
     );
   }
 
@@ -135,7 +135,7 @@ export default abstract class Runner<Options = RunnerOptions> {
     );
     tails.push(
       this._tailFile(this._paths.stderr, (line: string) => {
-        logger.error(`${id} | ${line}`);
+        logger.error(`${id} E | ${line}`);
       })
     );
     tails.forEach((tail: Tail) => tail.watch());
@@ -209,20 +209,33 @@ export default abstract class Runner<Options = RunnerOptions> {
 
   private async _pm2Start(
     args: string[] = [],
-    pm2StartOptions: Pm2StartOptions = {}
+    pm2StartOptions: Pm2StartOptions = {},
+    openTerminal = false
   ): Promise<ProcessDescription> {
+    let { command } = this;
+    let interpreter = 'sh';
+    if (openTerminal) {
+      interpreter = 'node';
+      const openTerminalPkgPath = require.resolve('open-terminal/package.json');
+      const openTerminalPath = path.resolve(
+        openTerminalPkgPath.substr(0, openTerminalPkgPath.length - 13),
+        'bin/openTerminal.js'
+      );
+      command = openTerminalPath;
+      args = [[this.command, ...args].join(' ')];
+    }
     const startOptions = {
       ...pm2StartOptions,
       autorestart: false,
       args,
       error: this._paths.stderr,
       instances: 1,
-      interpreter: 'sh',
+      interpreter,
       max_restarts: 1,
       merge_logs: true,
       name: this._name,
       output: this._paths.stdout,
-      script: this.command
+      script: command
     };
     return new Promise((resolve, reject) => {
       pm2.start(startOptions, (err: Error, proc: Proc) => {
