@@ -32,7 +32,7 @@ export default class Environment {
   }
 
   async onStop(code?: string | number) {
-    await this.apparatus.onStop({}, code);
+    await this.apparatus.onStop(code);
   }
 }
 

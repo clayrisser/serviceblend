@@ -8,7 +8,9 @@ import {
 import { RunnerMode } from './runner';
 
 export default class Service {
-  protected environments: HashMap<Environment> = {};
+  private _environments: HashMap<Environment> = {};
+
+  private _trackedEnvironmentNames: string[] = [];
 
   constructor(
     public serviceBlend: ServiceBlend,
@@ -21,7 +23,7 @@ export default class Service {
     }
     Object.entries(config.environments).forEach(
       ([environmentName, environmentConfig]: [string, EnvironmentConfig]) => {
-        this.environments[environmentName] = new Environment(
+        this._environments[environmentName] = new Environment(
           this,
           environmentName,
           environmentConfig
@@ -31,17 +33,18 @@ export default class Service {
   }
 
   async run(environmentName: string, options: Partial<ServiceRunOptions> = {}) {
+    this.registerEnvironment(environmentName);
     const { mode } = {
       mode: RunnerMode.Foreground,
       ...options
     };
     if (!environmentName) {
-      environmentName = Object.keys(this.environments)?.[0];
+      environmentName = Object.keys(this._environments)?.[0];
       if (!environmentName) {
         throw new Error('at least 1 environment must be defined');
       }
     }
-    const environment = this.environments[environmentName];
+    const environment = this._environments[environmentName];
     if (!environment) {
       throw new Error(`environment '${environmentName}' does not exist`);
     }
@@ -53,12 +56,12 @@ export default class Service {
     _options: Partial<ServiceStopOptions> = {}
   ) {
     if (!environmentName) {
-      environmentName = Object.keys(this.environments)?.[0];
+      environmentName = Object.keys(this._environments)?.[0];
       if (!environmentName) {
         throw new Error('at least 1 environment must be defined');
       }
     }
-    const environment = this.environments[environmentName];
+    const environment = this._environments[environmentName];
     if (!environment) {
       throw new Error(`environment '${environmentName}' does not exist`);
     }
@@ -67,10 +70,17 @@ export default class Service {
 
   async onStop(code?: string | number) {
     await Promise.all(
-      Object.values(this.environments).map(async (environment: Environment) => {
+      this._trackedEnvironmentNames.map(async (environmentName: string) => {
+        const environment = this._environments[environmentName];
         await environment.onStop(code);
       })
     );
+  }
+
+  private registerEnvironment(environmentName: string) {
+    this._trackedEnvironmentNames = [
+      ...new Set([...this._trackedEnvironmentNames, environmentName])
+    ];
   }
 }
 

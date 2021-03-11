@@ -11,6 +11,8 @@ export default class ServiceBlend {
 
   private _services: HashMap<Service> = {};
 
+  private _trackedServiceNames: string[] = [];
+
   constructor(options: Partial<ServiceBlendOptions> = {}) {
     this.options = {
       configPath: path.resolve('./serviceblend.yaml'),
@@ -42,6 +44,7 @@ export default class ServiceBlend {
     serviceName: string,
     options: Partial<ServiceBlendRunOptions> = {}
   ) {
+    this.registerService(serviceName);
     const runOptions: ServiceBlendRunOptions = {
       mode: RunnerMode.Foreground,
       ...options
@@ -84,12 +87,19 @@ export default class ServiceBlend {
       process.exit();
     }, timeout);
     await Promise.all(
-      Object.values(this._services).map(async (service: Service) => {
+      this._trackedServiceNames.map(async (serviceName: string) => {
+        const service = this._services[serviceName];
         await service.onStop(code);
       })
     );
     clearTimeout(t);
     process.exit();
+  }
+
+  registerService(serviceName: string) {
+    this._trackedServiceNames = [
+      ...new Set([...this._trackedServiceNames, serviceName])
+    ];
   }
 }
 

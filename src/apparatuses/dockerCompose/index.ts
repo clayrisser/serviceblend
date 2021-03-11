@@ -47,8 +47,8 @@ export default class DockerComposeApparatus extends Apparatus<DockerComposeAppar
     );
   }
 
-  async onStop() {
-    await this.dockerCompose.onStop();
+  async onStop(code?: string | number) {
+    await this.dockerCompose.onStop(code);
   }
 }
 

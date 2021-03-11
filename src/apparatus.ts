@@ -35,17 +35,13 @@ export default abstract class Apparatus<Declaration = HashMap> {
     return this.onStart(startOptions);
   }
 
-  async stop(options: Partial<ApparatusStopOptions> = {}): Promise<any> {
-    const stopOptions: ApparatusStopOptions = { ...options };
-    return this.onStop(stopOptions);
+  async stop(): Promise<any> {
+    return this.onStop();
   }
 
   abstract onStart(options?: ApparatusStartOptions): Promise<any>;
 
-  abstract onStop(
-    options?: ApparatusStopOptions,
-    code?: string | number
-  ): Promise<any>;
+  abstract onStop(code?: string | number): Promise<any>;
 }
 
 export interface ApparatusDeclaration {}
@@ -53,8 +49,6 @@ export interface ApparatusDeclaration {}
 export interface ApparatusStartOptions {
   mode: RunnerMode;
 }
-
-export interface ApparatusStopOptions {}
 
 export interface ApparatusContext {
   paths?: string[];

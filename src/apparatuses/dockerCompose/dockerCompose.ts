@@ -73,7 +73,7 @@ export default class DockerCompose extends Runner<DockerComposeOptions> {
     );
   }
 
-  async onStop() {
+  async onStop(_code?: string | number) {
     await this.pm2Stop();
     return this.pm2Delete();
   }
