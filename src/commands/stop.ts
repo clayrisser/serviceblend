@@ -1,6 +1,7 @@
 import { Command, flags } from '@oclif/command';
 import ServiceBlend, { ServiceBlendStopOptions } from '~/index';
 import { HashMap } from '~/types';
+import { parseArg } from '~/util';
 
 export default class Stop extends Command {
   static description = 'stops service';
@@ -46,30 +47,20 @@ export default class Stop extends Command {
             services: HashMap<Partial<ServiceBlendStopOptions>>,
             arg: string
           ) => {
-            const argArr = arg.split(':');
-            const serviceBlock = argArr.shift()?.split('=') || [];
-            const optionBlocks = argArr.join(':').split(',');
-            const [serviceName, environmentName] = [
-              serviceBlock?.[0],
-              serviceBlock?.[1]
-            ];
-            const options: Partial<ServiceBlendStopOptions> = {
+            const {
+              serviceName,
               environmentName,
-              ...optionBlocks.reduce(
-                (
-                  options: Partial<ServiceBlendStopOptions>,
-                  _optionBlock: string
-                ) => {
-                  return options;
-                },
-                {}
-              )
+              options
+            } = parseArg<ServiceBlendStopOptions>(arg);
+            services[serviceName] = {
+              ...options,
+              environmentName
             };
-            services[serviceName] = options;
             return services;
           },
           {}
         )
     );
+    process.exit();
   }
 }

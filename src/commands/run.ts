@@ -2,6 +2,7 @@ import { Command, flags } from '@oclif/command';
 import ServiceBlend, { ServiceBlendRunOptions } from '~/index';
 import { HashMap } from '~/types';
 import { RunnerMode } from '~/runner';
+import { parseArg } from '~/util';
 
 export default class Run extends Command {
   static description = 'runs service';
@@ -47,38 +48,20 @@ export default class Run extends Command {
         .filter((arg: string) => arg[0] !== '-')
         .reduce(
           (services: HashMap<Partial<ServiceBlendRunOptions>>, arg: string) => {
-            const argArr = arg.split(':');
-            const serviceBlock = argArr.shift()?.split('=') || [];
-            const optionBlocks = argArr.join(':').split(',');
-            const [serviceName, environmentName] = [
-              serviceBlock?.[0],
-              serviceBlock?.[1]
-            ];
-            const options: Partial<ServiceBlendRunOptions> = {
+            const {
+              serviceName,
               environmentName,
-              mode,
-              ...optionBlocks.reduce(
-                (
-                  options: Partial<ServiceBlendRunOptions>,
-                  optionBlock: string
-                ) => {
-                  const optionBlockArr = optionBlock.split('=');
-                  const key = optionBlockArr.shift();
-                  if (!key) return options;
-                  const value = optionBlockArr.length
-                    ? optionBlockArr.join('=')
-                    : true;
-                  options[key] = value;
-                  return options;
-                },
-                {}
-              )
+              options
+            } = parseArg<ServiceBlendRunOptions>(arg, { mode });
+            services[serviceName] = {
+              ...options,
+              environmentName
             };
-            services[serviceName] = options;
             return services;
           },
           {}
         )
     );
+    process.exit();
   }
 }

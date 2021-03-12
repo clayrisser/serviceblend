@@ -48,7 +48,7 @@ export default class ServiceBlend {
             string,
             Partial<ServiceBlendRunOptions>
           ]) => {
-            return this.runService(serviceName, options);
+            await this.runService(serviceName, options);
           }
         )
       );
@@ -66,7 +66,7 @@ export default class ServiceBlend {
             string,
             Partial<ServiceBlendStopOptions>
           ]) => {
-            return this.stopService(serviceName, options);
+            await this.stopService(serviceName, options);
           }
         )
       );
