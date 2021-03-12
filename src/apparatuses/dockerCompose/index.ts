@@ -22,10 +22,10 @@ export default class DockerComposeApparatus extends Apparatus<DockerComposeAppar
     super(environment, declaration);
     const name = `${this.environment.service.serviceName} ${this.environment.environmentName}`;
     if (typeof this.declaration.compose === 'string') {
-      this.dockerCompose = new DockerCompose({
-        file: path.resolve(process.cwd(), this.declaration.compose),
-        name
-      });
+      const filePath = path.resolve(process.cwd(), this.declaration.compose);
+      const REGEX = /\/[^/]+$/g;
+      const cwd = filePath.replace(REGEX, '');
+      this.dockerCompose = new DockerCompose({ cwd, file: filePath, name });
     } else {
       const tmpPath = fs.mkdtempSync(`${os.tmpdir()}/`);
       this.dockerCompose = new DockerCompose({ cwd: tmpPath, name });
