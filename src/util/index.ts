@@ -1,3 +1,6 @@
+import * as t from 'io-ts';
+import { PathReporter } from 'io-ts/PathReporter';
+
 export function parseArg<Options>(
   arg: string,
   defaultOptions: Partial<Options> = {}
@@ -22,6 +25,13 @@ export function parseArg<Options>(
     environmentName,
     options
   };
+}
+
+export function validate<T = any>(value: T, Type: t.Type<any>) {
+  const errors = PathReporter.report(Type.decode(value));
+  const message = errors.join('; ');
+  if (message === 'No errors!') return;
+  throw new Error(message);
 }
 
 export interface ParseArgResponse<Options> {

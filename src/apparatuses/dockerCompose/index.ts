@@ -1,9 +1,10 @@
+import * as t from 'io-ts';
 import YAML from 'yaml';
 import fs from 'fs-extra';
 import os from 'os';
 import path from 'path';
-import { Proc } from 'pm2';
 import Environment from '~/environment';
+import { validate } from '~/util';
 import Apparatus, {
   ApparatusStartOptions,
   ApparatusDeclaration
@@ -19,6 +20,7 @@ export default class DockerComposeApparatus extends Apparatus<DockerComposeAppar
     environment: Environment,
     declaration: Partial<DockerComposeApparatusDeclaration> = {}
   ) {
+    validate(declaration, DockerComposeApparatusDeclaration);
     super(environment, declaration);
     const name = `${this.environment.service.serviceName} ${this.environment.environmentName}`;
     if (typeof this.declaration.compose === 'string') {
@@ -66,16 +68,15 @@ export default class DockerComposeApparatus extends Apparatus<DockerComposeAppar
   }
 }
 
-export interface DockerComposeApparatusDeclaration
-  extends ApparatusDeclaration {
-  compose?: string;
-  service?: string;
-  version?: string;
-  [key: string]: any;
-}
-
-export interface Context {
-  dockerCompose: DockerCompose;
-  proc: Proc;
-  tmpPath?: string;
-}
+export const DockerComposeApparatusDeclaration = t.intersection([
+  t.type({
+    compose: t.union([t.string, t.undefined]),
+    service: t.union([t.string, t.undefined]),
+    version: t.union([t.string, t.undefined])
+  }),
+  t.record(t.string, t.unknown)
+]);
+export type DockerComposeApparatusDeclaration = t.TypeOf<
+  typeof DockerComposeApparatusDeclaration
+> &
+  ApparatusDeclaration;

@@ -1,4 +1,5 @@
-import { validate, Config } from './index';
+import { Config } from '~/config';
+import { validate } from './index';
 
 describe('validate()', () => {
   it('should accept valid config', () => {

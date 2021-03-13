@@ -1,7 +1,7 @@
 import * as t from 'io-ts';
 import YAML from 'yaml';
 import fs from 'fs-extra';
-import { PathReporter } from 'io-ts/PathReporter';
+import { validate } from '~/util';
 
 export const Environment = t.type({
   apparatus: t.string,
@@ -34,11 +34,4 @@ export function loadConfig(config: string | Config): Config {
   }
   validate(configObj, Config);
   return configObj;
-}
-
-export function validate<T = any>(value: T, Type: t.Type<any>) {
-  const errors = PathReporter.report(Type.decode(value));
-  const message = errors.join('; ');
-  if (message === 'No errors!') return;
-  throw new Error(message);
 }
