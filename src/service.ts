@@ -48,7 +48,8 @@ export default class Service {
     if (!environment) {
       throw new Error(`environment '${environmentName}' does not exist`);
     }
-    return environment.run({ mode });
+    await environment.run({ mode });
+    await this.onStop();
   }
 
   async stop(

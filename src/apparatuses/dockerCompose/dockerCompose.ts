@@ -38,7 +38,7 @@ export default class DockerCompose extends Runner<DockerComposeOptions> {
       '--',
       serviceName || ''
     ];
-    return this.pm2Start(
+    await this.pm2Start(
       args,
       { mode },
       {

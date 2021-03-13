@@ -3,5 +3,3 @@ version: '3'
 services:
   nginx2:
     image: nginx:latest
-    ports:
-      - 8081:80

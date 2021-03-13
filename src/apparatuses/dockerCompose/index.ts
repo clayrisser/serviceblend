@@ -47,10 +47,11 @@ export default class DockerComposeApparatus extends Apparatus<DockerComposeAppar
         serviceName: this.declaration.service,
         mode
       });
+    } else {
+      await this.dockerCompose.up({
+        mode
+      });
     }
-    await this.dockerCompose.up({
-      mode
-    });
   }
 
   async onStop(code?: string | number) {
