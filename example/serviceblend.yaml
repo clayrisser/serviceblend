@@ -24,7 +24,7 @@ services:
         envs: {}
         definition:
           compose: ./docker-compose.yaml
-          service: nginx
+          service: nginx2
 
   #     # endpoint
   #     production:
@@ -41,7 +41,7 @@ services:
         envs: {}
         definition:
           compose: ./docker-compose.yaml
-          service: nginx
+          service: nginx2
 
       # local:
       #   endpoint: http://localhost:8080

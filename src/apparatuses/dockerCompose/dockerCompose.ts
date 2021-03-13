@@ -54,15 +54,40 @@ export default class DockerCompose extends Runner<DockerComposeOptions> {
     pm2StartOptions?: Pm2StartOptions,
     cb?: Pm2Callback
   ) {
-    const { serviceName }: DockerComposeStopOptions = {
-      serviceName: '',
+    const { serviceNames }: DockerComposeStopOptions = {
       ...options
     };
     const args = [
       ...(this.options.file ? ['-f', this.options.file] : []),
       'stop',
-      '--',
-      serviceName || ''
+      ...(serviceNames ? ['--', ...serviceNames] : [])
+    ];
+    return this.pm2Start(
+      args,
+      { mode: RunnerMode.Foreground },
+      {
+        cwd: this.options.cwd,
+        ...pm2StartOptions
+      },
+      cb
+    );
+  }
+
+  async remove(
+    options: Partial<DockerComposeRemoveOptions> = {},
+    pm2StartOptions?: Pm2StartOptions,
+    cb?: Pm2Callback
+  ) {
+    const { serviceNames, stop }: DockerComposeRemoveOptions = {
+      stop: true,
+      ...options
+    };
+    const args = [
+      ...(this.options.file ? ['-f', this.options.file] : []),
+      'rm',
+      '-f',
+      ...(stop ? ['-s'] : []),
+      ...(serviceNames ? ['--', ...serviceNames] : [])
     ];
     return this.pm2Start(
       args,
@@ -128,6 +153,7 @@ export default class DockerCompose extends Runner<DockerComposeOptions> {
   async onStop(_code?: string | number) {
     await this.pm2Stop();
     await this.pm2Delete();
+    this.pm2Disconnect();
   }
 }
 
@@ -151,5 +177,10 @@ export interface DockerComposeDownOptions {
 }
 
 export interface DockerComposeStopOptions {
-  serviceName: string;
+  serviceNames?: string[];
+}
+
+export interface DockerComposeRemoveOptions {
+  serviceNames?: string[];
+  stop: boolean;
 }

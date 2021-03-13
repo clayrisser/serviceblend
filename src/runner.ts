@@ -60,7 +60,7 @@ export default abstract class Runner<Options = RunnerOptions> {
       ...options
     };
     await this._pm2Connect();
-    if (mode !== RunnerMode.Detatched && (await this.pm2Exists(true))) {
+    if (mode !== RunnerMode.Detatched && (await this.pm2Exists())) {
       await this._pm2Delete();
     }
     const processDescriptionPromise = this._pm2Start(
@@ -75,56 +75,52 @@ export default abstract class Runner<Options = RunnerOptions> {
     const processDescription = await processDescriptionPromise;
     if (cb) cb(processDescription);
     if (mode !== RunnerMode.Detatched) await this._pm2Delete();
-    this._pm2Disconnect();
     return processDescription;
   }
 
   protected async pm2Stop(): Promise<ProcessDescription | undefined> {
     await this._pm2Connect();
-    if (!(await this.pm2Exists(true))) {
-      this._pm2Disconnect();
+    if (!(await this.pm2Exists())) {
       return undefined;
     }
-    const proc = await this._pm2Stop();
-    this._pm2Disconnect();
-    return proc;
+    const processDescription = await this._pm2Stop();
+    return processDescription;
   }
 
   protected async pm2Delete(): Promise<ProcessDescription | undefined> {
     await this._pm2Connect();
-    if (!(await this.pm2Exists(true))) {
-      this._pm2Disconnect();
+    if (!(await this.pm2Exists())) {
       return undefined;
     }
     const proc = await this._pm2Delete();
-    this._pm2Disconnect();
     return proc;
   }
 
   protected async pm2Restart(): Promise<ProcessDescription | undefined> {
     await this._pm2Connect();
     const processDescription = await this._pm2Restart();
-    this._pm2Disconnect();
     return processDescription;
   }
 
-  protected async pm2Exists(connected = false): Promise<boolean> {
-    if (!connected) await this._pm2Connect();
+  protected async pm2Exists(): Promise<boolean> {
+    await this._pm2Connect();
     const processDescription = await this._pm2Describe();
-    if (!connected) this._pm2Disconnect();
     return !!processDescription;
   }
 
-  protected async pm2Alive(connected = false): Promise<boolean> {
-    if (!connected) await this._pm2Connect();
+  protected async pm2Alive(): Promise<boolean> {
+    await this._pm2Connect();
     const processDescription = await this._pm2Describe();
-    if (!connected) this._pm2Disconnect();
     return (
       typeof processDescription !== 'undefined' &&
       processDescription &&
       processDescription?.pm2_env?.status !== 'errored' &&
       processDescription?.pm2_env?.status !== 'stopped'
     );
+  }
+
+  protected pm2Disconnect() {
+    pm2.disconnect();
   }
 
   private async _tail() {
@@ -152,7 +148,7 @@ export default abstract class Runner<Options = RunnerOptions> {
     await new Promise((resolve, reject) => {
       const interval = setInterval(async () => {
         try {
-          if (!(await this.pm2Alive(true))) {
+          if (!(await this.pm2Alive())) {
             clearInterval(interval);
             tails.forEach((tail: Tail) => tail.unwatch());
             return resolve(undefined);
@@ -210,10 +206,6 @@ export default abstract class Runner<Options = RunnerOptions> {
         }
       );
     });
-  }
-
-  private _pm2Disconnect() {
-    pm2.disconnect();
   }
 
   private get _name() {

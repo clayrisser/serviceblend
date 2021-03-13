@@ -56,6 +56,7 @@ export default class ServiceBlend {
       await this.onStop(undefined, false);
       throw err;
     }
+    await this.onStop(undefined, false);
   }
 
   async stop(services: HashMap<Partial<ServiceBlendStopOptions>>) {
