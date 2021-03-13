@@ -75,7 +75,6 @@ export default abstract class Runner<Options = RunnerOptions> {
     const processDescription = await processDescriptionPromise;
     if (cb) cb(processDescription);
     if (mode !== RunnerMode.Detatched) await this._pm2Delete();
-    await fs.remove(this._paths.tmp);
     this._pm2Disconnect();
     return processDescription;
   }

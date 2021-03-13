@@ -37,17 +37,31 @@ export default class DockerComposeApparatus extends Apparatus<DockerComposeAppar
   }
 
   async onStart({ mode }: ApparatusStartOptions) {
-    return this.dockerCompose.run(
-      {
+    if (
+      typeof this.declaration.compose === 'string' &&
+      typeof this.declaration.service === 'string'
+    ) {
+      return this.dockerCompose.run({
         serviceName: this.declaration.service,
         mode
-      },
-      {},
-      (proc: Proc) => this.registerContext('hello', { proc })
-    );
+      });
+    }
+    return this.dockerCompose.up({
+      mode
+    });
   }
 
   async onStop(code?: string | number) {
+    if (
+      typeof this.declaration.compose === 'string' &&
+      typeof this.declaration.service === 'string'
+    ) {
+      await this.dockerCompose.stop({
+        serviceName: this.declaration.service
+      });
+    } else {
+      await this.dockerCompose.down();
+    }
     await this.dockerCompose.onStop(code);
   }
 }

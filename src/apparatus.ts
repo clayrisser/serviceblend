@@ -10,21 +10,11 @@ export default abstract class Apparatus<Declaration = HashMap> {
 
   protected declaration: Declaration;
 
-  private _contexts: HashMap<ApparatusContext> = {};
-
   constructor(
     public environment: Environment,
     declaration: Partial<Declaration> = {}
   ) {
     this.declaration = { ...declaration } as Declaration;
-  }
-
-  protected registerContext(id: string, context: ApparatusContext) {
-    this._contexts[id] = context;
-  }
-
-  protected getContext(id: string): ApparatusContext | void {
-    return this._contexts[id];
   }
 
   async start(options: Partial<ApparatusStartOptions> = {}): Promise<any> {
