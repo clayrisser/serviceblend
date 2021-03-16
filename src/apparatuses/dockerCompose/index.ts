@@ -43,14 +43,24 @@ export default class DockerComposeApparatus extends Apparatus<DockerComposeAppar
       typeof this.declaration.compose === 'string' &&
       typeof this.declaration.service === 'string'
     ) {
-      await this.dockerCompose.run({
-        serviceName: this.declaration.service,
-        mode
-      });
+      await this.dockerCompose.run(
+        {
+          serviceName: this.declaration.service,
+          mode
+        },
+        {
+          env: this.environment.config.envs || {}
+        }
+      );
     } else {
-      await this.dockerCompose.up({
-        mode
-      });
+      await this.dockerCompose.up(
+        {
+          mode
+        },
+        {
+          env: this.environment.config.envs || {}
+        }
+      );
     }
   }
 
@@ -60,11 +70,21 @@ export default class DockerComposeApparatus extends Apparatus<DockerComposeAppar
       typeof this.declaration.compose === 'string' &&
       typeof this.declaration.service === 'string'
     ) {
-      await this.dockerCompose.remove({
-        serviceNames: [this.declaration.service]
-      });
+      await this.dockerCompose.remove(
+        {
+          serviceNames: [this.declaration.service]
+        },
+        {
+          env: this.environment.config.envs || {}
+        }
+      );
     } else {
-      await this.dockerCompose.down();
+      await this.dockerCompose.down(
+        {},
+        {
+          env: this.environment.config.envs || {}
+        }
+      );
     }
   }
 }

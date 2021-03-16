@@ -1,11 +1,16 @@
 import * as t from 'io-ts';
+import Handlebars from 'handlebars';
 import YAML from 'yaml';
 import fs from 'fs-extra';
+import { HashMap } from '~/types';
 import { validate } from '~/util';
 
 export const Environment = t.type({
   apparatus: t.string,
-  definition: t.unknown
+  definition: t.unknown,
+  endpoint: t.union([t.undefined, t.string]),
+  envs: t.union([t.undefined, t.record(t.string, t.string)]),
+  open: t.union([t.undefined, t.boolean])
 });
 export type Environment = t.TypeOf<typeof Environment>;
 
@@ -26,12 +31,31 @@ export const Config = t.type({
 });
 export type Config = t.TypeOf<typeof Config>;
 
-export function loadConfig(config: string | Config): Config {
-  let configObj = config as Config;
-  if (typeof config === 'string') {
-    const configStr = fs.readFileSync(config).toString();
-    configObj = YAML.parse(configStr);
+export class ConfigLoader {
+  private data: HashMap<any>;
+
+  constructor(data: HashMap<any> = {}) {
+    this.data = { ...data };
   }
-  validate(configObj, Config);
-  return configObj;
+
+  private recursiveTemplate(str: string, data: HashMap<string> = {}) {
+    const result = Handlebars.compile(str)({
+      ...this.data,
+      ...data,
+      ...YAML.parse(str),
+      env: process.env
+    });
+    if (result === str) return result;
+    return this.recursiveTemplate(result, data);
+  }
+
+  load(config: string | Config): Config {
+    let configObj = config as Config;
+    if (typeof config === 'string') {
+      const configStr = fs.readFileSync(config).toString();
+      configObj = YAML.parse(this.recursiveTemplate(configStr));
+    }
+    validate(configObj, Config);
+    return configObj;
+  }
 }

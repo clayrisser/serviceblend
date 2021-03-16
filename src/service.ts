@@ -10,7 +10,7 @@ import { RunnerMode } from './runner';
 export default class Service {
   private _environments: HashMap<Environment> = {};
 
-  private _trackedEnvironmentNames: string[] = [];
+  private _trackedEnvironmentNames = new Set<string>();
 
   constructor(
     public serviceBlend: ServiceBlend,
@@ -69,19 +69,25 @@ export default class Service {
     return environment.stop();
   }
 
+  // TODO: something is triggering this 2x
   async onStop(code?: string | number) {
-    await Promise.all(
-      this._trackedEnvironmentNames.map(async (environmentName: string) => {
-        const environment = this._environments[environmentName];
-        await environment.onStop(code);
-      })
+    const p = Promise.all(
+      [...this._trackedEnvironmentNames].map(
+        async (environmentName: string) => {
+          const environment = this._environments[environmentName];
+          await environment.onStop(code);
+        }
+      )
     );
+    this._trackedEnvironmentNames = new Set<string>();
+    await p;
   }
 
   private registerEnvironment(environmentName: string) {
-    this._trackedEnvironmentNames = [
-      ...new Set([...this._trackedEnvironmentNames, environmentName])
-    ];
+    this._trackedEnvironmentNames = new Set([
+      ...this._trackedEnvironmentNames,
+      environmentName
+    ]);
   }
 }
 

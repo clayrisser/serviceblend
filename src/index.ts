@@ -1,7 +1,7 @@
 import path from 'path';
 import Service from '~/service';
 import { RunnerMode } from '~/runner';
-import { loadConfig, Config } from '~/config';
+import { ConfigLoader, Config } from '~/config';
 import { HashMap } from '~/types';
 
 export default class ServiceBlend {
@@ -25,7 +25,9 @@ export default class ServiceBlend {
       const matches = this.options.cwd.match(REGEX);
       this.options.projectName = [...(matches || [])]?.[0];
     }
-    this.config = this.options.config || loadConfig(this.options.configPath);
+    const configLoader = new ConfigLoader();
+    this.config =
+      this.options.config || configLoader.load(this.options.configPath);
     this._services = Object.keys(this.config.services).reduce(
       (services: HashMap<Service>, serviceName: string) => {
         services[serviceName] = this.getService(
@@ -121,7 +123,7 @@ export default class ServiceBlend {
     return new Service(this, projectName, serviceName, serviceConfig);
   }
 
-  async onStop(code?: string | number, exit = true, timeout = 5000) {
+  async onStop(code?: string | number, exit = true, timeout = 10000) {
     const t = setTimeout(() => {
       if (exit) process.exit();
     }, timeout);
