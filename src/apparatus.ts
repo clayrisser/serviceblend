@@ -17,12 +17,21 @@ export default abstract class Apparatus<Declaration = HashMap> {
     this.declaration = { ...declaration } as Declaration;
   }
 
-  async start(options: Partial<ApparatusStartOptions> = {}): Promise<any> {
+  async start(
+    options: Partial<ApparatusStartOptions> = {},
+    readyCb?: ReadyCallback
+  ): Promise<any> {
     const startOptions: ApparatusStartOptions = {
       mode: RunnerMode.Foreground,
+      readyTimeout: 3000,
       ...options
     };
-    return this.onStart(startOptions);
+    const p = this.onStart(startOptions);
+    if (readyCb) {
+      await new Promise((r) => setTimeout(r, startOptions.readyTimeout));
+      await readyCb();
+    }
+    return p;
   }
 
   async stop(): Promise<any> {
@@ -38,6 +47,7 @@ export interface ApparatusDeclaration {}
 
 export interface ApparatusStartOptions {
   mode: RunnerMode;
+  readyTimeout?: number;
 }
 
 export interface ApparatusContext {
@@ -45,3 +55,5 @@ export interface ApparatusContext {
   processDescription?: ProcessDescription;
   [key: string]: any;
 }
+
+export type ReadyCallback = (...args: any[]) => any;

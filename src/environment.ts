@@ -1,3 +1,4 @@
+import open from 'open';
 import Apparatus from '~/apparatus';
 import Service from '~/service';
 import { Environment as EnvironmentConfig } from '~/config';
@@ -24,7 +25,9 @@ export default class Environment {
       mode: RunnerMode.Foreground,
       ...options
     };
-    return this.apparatus.start({ mode });
+    return this.apparatus.start({ mode }, () => {
+      if (this.config.endpoint && options.open) open(this.config.endpoint);
+    });
   }
 
   async stop(_options: Partial<EnvironmentStopOptions> = {}) {
@@ -38,6 +41,7 @@ export default class Environment {
 
 export interface EnvironmentRunOptions {
   mode: RunnerMode;
+  open?: boolean;
 }
 
 export interface EnvironmentStopOptions {}

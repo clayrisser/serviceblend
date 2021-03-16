@@ -60,7 +60,7 @@ export default abstract class Runner<Options = RunnerOptions> {
       ...options
     };
     await this._pm2Connect();
-    if (mode !== RunnerMode.Detatched && (await this.pm2Exists())) {
+    if (mode !== RunnerMode.Detached && (await this.pm2Exists())) {
       await this._pm2Delete();
     }
     const processDescriptionPromise = this._pm2Start(
@@ -71,10 +71,10 @@ export default abstract class Runner<Options = RunnerOptions> {
       },
       mode
     );
-    if (mode !== RunnerMode.Detatched) await this._tail();
+    if (mode !== RunnerMode.Detached) await this._tail();
     const processDescription = await processDescriptionPromise;
     if (cb) cb(processDescription);
-    if (mode !== RunnerMode.Detatched) await this._pm2Delete();
+    if (mode !== RunnerMode.Detached) await this._pm2Delete();
     return processDescription;
   }
 
@@ -240,7 +240,7 @@ export default abstract class Runner<Options = RunnerOptions> {
       merge_logs: true,
       name: this._name,
       script: command,
-      ...(mode !== RunnerMode.Detatched
+      ...(mode !== RunnerMode.Detached
         ? {
             error: this._paths.stderr,
             output: this._paths.stdout
@@ -317,7 +317,7 @@ export interface RunnerStartOptions {
 }
 
 export enum RunnerMode {
-  Detatched = 'DETATCHED',
+  Detached = 'DETACHED',
   Foreground = 'FOREGROUND',
   Terminal = 'TERMINAL'
 }

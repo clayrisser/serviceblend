@@ -42,15 +42,21 @@ export default class ServiceBlend {
     process.on('SIGTERM', (code: string | number) => this.onStop(code));
   }
 
-  async run(services: HashMap<Partial<ServiceBlendRunOptions>>) {
+  async run(
+    services: HashMap<Partial<ServiceBlendRunOptions>>,
+    options: Partial<ServiceBlendRunOptions> = {}
+  ) {
     try {
       await Promise.all(
         Object.entries(services).map(
-          async ([serviceName, options]: [
+          async ([serviceName, serviceOptions]: [
             string,
             Partial<ServiceBlendRunOptions>
           ]) => {
-            await this.runService(serviceName, options);
+            await this.runService(serviceName, {
+              ...options,
+              ...serviceOptions
+            });
           }
         )
       );
@@ -60,15 +66,21 @@ export default class ServiceBlend {
     }
   }
 
-  async stop(services: HashMap<Partial<ServiceBlendStopOptions>>) {
+  async stop(
+    services: HashMap<Partial<ServiceBlendStopOptions>>,
+    options: Partial<ServiceBlendStopOptions> = {}
+  ) {
     try {
       await Promise.all(
         Object.entries(services).map(
-          async ([serviceName, options]: [
+          async ([serviceName, serviceOptions]: [
             string,
             Partial<ServiceBlendStopOptions>
           ]) => {
-            await this.stopService(serviceName, options);
+            await this.stopService(serviceName, {
+              ...options,
+              ...serviceOptions
+            });
           }
         )
       );
@@ -150,8 +162,9 @@ export interface ServiceBlendStopOptions {
 }
 
 export interface ServiceBlendRunOptions {
-  mode: RunnerMode;
   environmentName?: string;
+  mode: RunnerMode;
+  open?: boolean;
 }
 
 export interface ServiceBlendOptions {

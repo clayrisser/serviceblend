@@ -1,8 +1,10 @@
 import * as t from 'io-ts';
 import { PathReporter } from 'io-ts/PathReporter';
+import { HashMap } from '~/types';
 
 export function parseArg<Options>(
   arg: string,
+  maps: HashMap<any> = {},
   defaultOptions: Partial<Options> = {}
 ): ParseArgResponse<Options> {
   const argArr = arg.split(':');
@@ -13,10 +15,19 @@ export function parseArg<Options>(
     ...defaultOptions,
     ...optionBlocks.reduce((options: Partial<Options>, optionBlock: string) => {
       const optionBlockArr = optionBlock.split('=');
-      const key = optionBlockArr.shift();
+      let key = optionBlockArr.shift();
       if (!key) return options;
       const value = optionBlockArr.length ? optionBlockArr.join('=') : true;
-      options[key] = value;
+      key = typeof maps[key] === 'string' ? maps[key] : key;
+      if (typeof key === 'undefined') return options;
+      if (typeof maps[key] === 'object' && !Array.isArray(maps[key])) {
+        options = {
+          ...options,
+          ...maps[key]
+        };
+      } else {
+        options[key] = value;
+      }
       return options;
     }, {})
   };

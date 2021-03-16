@@ -34,7 +34,7 @@ export default class Service {
 
   async run(environmentName: string, options: Partial<ServiceRunOptions> = {}) {
     this.registerEnvironment(environmentName);
-    const { mode } = {
+    const runOptions = {
       mode: RunnerMode.Foreground,
       ...options
     };
@@ -48,7 +48,7 @@ export default class Service {
     if (!environment) {
       throw new Error(`environment '${environmentName}' does not exist`);
     }
-    await environment.run({ mode });
+    await environment.run(runOptions);
     await this.onStop();
   }
 
@@ -93,6 +93,7 @@ export default class Service {
 
 export interface ServiceRunOptions {
   mode: RunnerMode;
+  open?: boolean;
 }
 
 export interface ServiceStopOptions {}
