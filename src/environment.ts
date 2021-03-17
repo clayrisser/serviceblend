@@ -26,7 +26,14 @@ export default class Environment {
       ...options
     };
     return this.apparatus.start({ mode }, () => {
-      if (this.config.endpoint && options.open) open(this.config.endpoint);
+      if (
+        this.config.endpoint &&
+        (typeof options.open === 'undefined'
+          ? this.config.open
+          : !!options.open)
+      ) {
+        open(this.config.endpoint);
+      }
     });
   }
 
