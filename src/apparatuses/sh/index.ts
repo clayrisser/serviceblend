@@ -16,7 +16,7 @@ export default class ShApparatus extends Apparatus<ShApparatusDeclaration> {
     validate(declaration, ShApparatusDeclaration);
     super(environment, declaration);
     const name = `${this.environment.service.serviceName} ${this.environment.environmentName}`;
-    this.sh = new Sh({ name });
+    this.sh = new Sh({ name, cwd: this.environment.service.config.cwd });
   }
 
   async onStart({ mode }: ApparatusStartOptions) {

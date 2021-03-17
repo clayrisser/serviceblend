@@ -1,7 +1,7 @@
 import path from 'path';
 import Service from '~/service';
 import { RunnerMode } from '~/runner';
-import { ConfigLoader, Config } from '~/config';
+import { ConfigLoader, Config, Service as ServiceConfig } from '~/config';
 import { HashMap } from '~/types';
 
 export default class ServiceBlend {
@@ -132,7 +132,7 @@ export default class ServiceBlend {
   }
 
   getService(projectName: string, serviceName: string): Service {
-    const serviceConfig = this.config.services[serviceName];
+    const serviceConfig = this.config.services[serviceName] as ServiceConfig;
     if (!serviceConfig) {
       throw new Error(`service '${serviceName}' does not exists`);
     }
