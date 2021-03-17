@@ -1,3 +1,6 @@
+includes:
+  - '**/serviceblend.yaml'
+
 services:
   serviceA:
     default: local

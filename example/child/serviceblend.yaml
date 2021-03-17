@@ -1,0 +1,7 @@
+services:
+  serviceC:
+    environments:
+      local:
+        apparatus: sh
+        definition: |
+          echo hello c
