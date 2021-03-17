@@ -6,7 +6,6 @@ const logger = console;
 (async () => {
   await run();
 })().catch((err: Error) => {
-  logger.error(err);
   handle(err);
   process.exit(1);
 });
