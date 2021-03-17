@@ -1,18 +1,12 @@
 import Apparatus, { ApparatusDeclaration } from '~/apparatus';
 import Environment from '~/environment';
 import { HashMap } from '~/types';
-import Command from './command';
 import DockerCompose from './dockerCompose';
-import Endpoint from './endpoint';
-import Proxy from './proxy';
-import Supervisord from './supervisord';
+import Sh from './sh';
 
 const apparatuses: HashMap<typeof Apparatus> = ([
-  Command,
-  DockerCompose,
-  Endpoint,
-  Proxy,
-  Supervisord
+  Sh,
+  DockerCompose
 ] as typeof Apparatus[]).reduce(
   (apparatuses: HashMap<any>, ApparatusClass: typeof Apparatus) => {
     apparatuses[ApparatusClass.apparatusName] = ApparatusClass;
@@ -33,4 +27,4 @@ export function getApparatus<P = Apparatus, C = ApparatusDeclaration>(
   return new ApparatusClass(environment, apparatusConfig) as P;
 }
 
-export { Command, DockerCompose, Endpoint, Proxy, Supervisord };
+export { DockerCompose, Sh };

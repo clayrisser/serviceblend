@@ -14,7 +14,7 @@ export default abstract class Apparatus<Declaration = HashMap> {
     public environment: Environment,
     declaration: Partial<Declaration> = {}
   ) {
-    this.declaration = { ...declaration } as Declaration;
+    this.declaration = declaration as Declaration;
   }
 
   async start(

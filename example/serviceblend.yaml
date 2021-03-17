@@ -16,6 +16,13 @@ services:
               ports:
                 - 8080:80
 
+      one:
+        endpoint: http://example.com
+        open: true
+        apparatus: sh
+        definition: |
+          echo hello world && tail -f /dev/null
+
       # docker compose
       staging:
         endpoint: http://localhost:8080
@@ -41,7 +48,7 @@ services:
         envs: {}
         definition:
           compose: ./docker-compose.yaml
-          service: nginx2
+          service: nginx
 
       # local:
       #   endpoint: http://localhost:8080

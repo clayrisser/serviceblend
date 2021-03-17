@@ -21,9 +21,14 @@ export default abstract class Runner<Options = RunnerOptions> {
 
   private _paths: RunnerPaths;
 
+  protected tails: Tail[] = [];
+
+  protected intervals: NodeJS.Timeout[] = [];
+
   constructor(options: Options) {
     const tmpPath = fs.mkdtempSync(`${os.tmpdir()}/`);
     this._paths = {
+      script: path.resolve(tmpPath, 'script.sh'),
       stderr: path.resolve(tmpPath, 'stderr.log'),
       stdout: path.resolve(tmpPath, 'stdout.log'),
       tmp: tmpPath
@@ -84,6 +89,10 @@ export default abstract class Runner<Options = RunnerOptions> {
       return undefined;
     }
     const processDescription = await this._pm2Stop();
+    this.tails.forEach((tail: Tail) => tail.unwatch());
+    this.intervals.forEach((interval: NodeJS.Timeout) =>
+      clearInterval(interval)
+    );
     return processDescription;
   }
 
@@ -93,6 +102,11 @@ export default abstract class Runner<Options = RunnerOptions> {
       return undefined;
     }
     const proc = await this._pm2Delete();
+    this.tails.forEach((tail: Tail) => tail.unwatch());
+    // await fs.remove(this._paths.tmp);
+    this.intervals.forEach((interval: NodeJS.Timeout) =>
+      clearInterval(interval)
+    );
     return proc;
   }
 
@@ -132,25 +146,24 @@ export default abstract class Runner<Options = RunnerOptions> {
     if (!(await fs.pathExists(this._paths.stdout))) {
       await fs.writeFile(this._paths.stdout, '');
     }
-    const tails: Tail[] = [];
-    tails.push(
+    this.tails.push(
       this._tailFile(this._paths.stdout, (line: string) => {
         logger.info(`${id} | ${line}`);
       })
     );
-    tails.push(
+    this.tails.push(
       this._tailFile(this._paths.stderr, (line: string) => {
         logger.error(`${id} | ${line}`);
       })
     );
-    tails.forEach((tail: Tail) => tail.watch());
+    this.tails.forEach((tail: Tail) => tail.watch());
     await new Promise((r) => setTimeout(r, 1000));
     await new Promise((resolve, reject) => {
       const interval = setInterval(async () => {
         try {
           if (!(await this.pm2Alive())) {
             clearInterval(interval);
-            tails.forEach((tail: Tail) => tail.unwatch());
+            this.tails.forEach((tail: Tail) => tail.unwatch());
             return resolve(undefined);
           }
         } catch (err) {
@@ -158,6 +171,7 @@ export default abstract class Runner<Options = RunnerOptions> {
         }
         return null;
       }, 1000);
+      this.intervals.push(interval);
     });
   }
 
@@ -218,8 +232,9 @@ export default abstract class Runner<Options = RunnerOptions> {
     pm2StartOptions: Pm2StartOptions = {},
     mode = RunnerMode.Foreground
   ): Promise<ProcessDescription> {
-    let { command } = this;
     let interpreter = 'sh';
+    const { command } = this;
+    let { script } = this._paths;
     if (mode === RunnerMode.Terminal) {
       interpreter = 'node';
       const openTerminalPkgPath = require.resolve('open-terminal/package.json');
@@ -227,19 +242,22 @@ export default abstract class Runner<Options = RunnerOptions> {
         openTerminalPkgPath.substr(0, openTerminalPkgPath.length - 13),
         'bin/openTerminal.js'
       );
-      command = openTerminalPath;
-      args = [[this.command, ...args].join(' ')];
+      script = openTerminalPath;
+      args = [[command, ...args].join(' ')];
+    } else {
+      await fs.writeFile(script, [command, ...args].join(' '));
+      args = [];
     }
     const startOptions = {
       ...pm2StartOptions,
-      autorestart: false,
       args,
+      autorestart: false,
       instances: 1,
       interpreter,
       max_restarts: 1,
       merge_logs: true,
       name: this._name,
-      script: command,
+      script,
       ...(mode !== RunnerMode.Detached
         ? {
             error: this._paths.stderr,
@@ -323,6 +341,7 @@ export enum RunnerMode {
 }
 
 export interface RunnerPaths {
+  script: string;
   stderr: string;
   stdout: string;
   tmp: string;
