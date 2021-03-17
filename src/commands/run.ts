@@ -10,10 +10,11 @@ export default class Run extends Command {
   static examples = ['$ serviceblend run'];
 
   static flags: flags.Input<any> = {
+    config: flags.string({ char: 'c', required: false }),
     detached: flags.boolean({ char: 'd', required: false }),
     environment: flags.string({ char: 'e', required: false }),
+    name: flags.string({ char: 'n', required: false }),
     open: flags.boolean({ char: 'o', required: false }),
-    project: flags.string({ char: 'p', required: false }),
     terminal: flags.boolean({ char: 't', required: false })
   };
 
@@ -35,9 +36,14 @@ export default class Run extends Command {
             defaultEnvironmentName: flags.environment
           }
         : {}),
-      ...(flags.project
+      ...(flags.name
         ? {
-            projectName: flags.project
+            projectName: flags.name
+          }
+        : {}),
+      ...(flags.config
+        ? {
+            configPath: flags.config
           }
         : {})
     });

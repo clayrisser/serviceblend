@@ -20,14 +20,18 @@ export default class ServiceBlend {
       projectName: '',
       ...options
     };
-    if (!this.options.projectName.length) {
-      const REGEX = /[^/]+$/g;
-      const matches = this.options.cwd.match(REGEX);
-      this.options.projectName = [...(matches || [])]?.[0];
-    }
     const configLoader = new ConfigLoader();
     this.config =
       this.options.config || configLoader.load(this.options.configPath);
+    if (!this.options.projectName.length) {
+      if (this.config.name) {
+        this.options.projectName = this.config.name;
+      } else {
+        const REGEX = /[^/]+$/g;
+        const matches = this.options.cwd.match(REGEX);
+        this.options.projectName = [...(matches || [])]?.[0];
+      }
+    }
     this._services = Object.keys(this.config.services).reduce(
       (services: HashMap<Service>, serviceName: string) => {
         services[serviceName] = this.getService(

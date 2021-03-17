@@ -30,8 +30,9 @@ export const Services = t.record(t.string, Service);
 export type Services = t.TypeOf<typeof Services>;
 
 export const Config = t.type({
-  services: Services,
-  includes: t.union([t.undefined, t.array(t.string)])
+  includes: t.union([t.undefined, t.array(t.string)]),
+  name: t.union([t.undefined, t.string]),
+  services: Services
 });
 export type Config = t.TypeOf<typeof Config>;
 

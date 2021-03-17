@@ -9,10 +9,9 @@ export default class Stop extends Command {
   static examples = ['$ serviceblend stop'];
 
   static flags: flags.Input<any> = {
-    detached: flags.boolean({ char: 'd', required: false }),
+    config: flags.string({ char: 'c', required: false }),
     environment: flags.string({ char: 'e', required: false }),
-    project: flags.string({ char: 'p', required: false }),
-    terminal: flags.boolean({ char: 't', required: false })
+    name: flags.string({ char: 'n', required: false })
   };
 
   static strict = false;
@@ -33,9 +32,14 @@ export default class Stop extends Command {
             defaultEnvironmentName: flags.environment
           }
         : {}),
-      ...(flags.project
+      ...(flags.name
         ? {
-            projectName: flags.project
+            projectName: flags.name
+          }
+        : {}),
+      ...(flags.config
+        ? {
+            configPath: flags.config
           }
         : {})
     });
