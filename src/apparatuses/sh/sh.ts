@@ -2,8 +2,6 @@ import { StartOptions as Pm2StartOptions } from 'pm2';
 import Runner, { RunnerMode, Pm2Callback, RunnerOptions } from '~/runner';
 
 export default class Sh extends Runner<ShOptions> {
-  command = 'sh';
-
   constructor(options: ShOptions) {
     super({ ...options });
   }
@@ -18,9 +16,8 @@ export default class Sh extends Runner<ShOptions> {
       mode: RunnerMode.Foreground,
       ...options
     };
-    const args = ['-c', `"${command}"`];
     await this.pm2Start(
-      args,
+      command,
       { mode },
       {
         cwd: this.options.cwd,

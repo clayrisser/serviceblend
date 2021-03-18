@@ -15,7 +15,7 @@ const logger = console;
 export default abstract class Runner<Options = RunnerOptions> {
   protected options: Options;
 
-  protected abstract command: string;
+  protected command?: string;
 
   protected color: string;
 
@@ -69,7 +69,7 @@ export default abstract class Runner<Options = RunnerOptions> {
       await this._pm2Delete();
     }
     const processDescriptionPromise = this._pm2Start(
-      Array.isArray(args) ? args : [args],
+      args,
       {
         cwd,
         ...pm2StartOptions
@@ -228,12 +228,14 @@ export default abstract class Runner<Options = RunnerOptions> {
   }
 
   private async _pm2Start(
-    args: string[] = [],
+    args: string | string[] = [],
     pm2StartOptions: Pm2StartOptions = {},
     mode = RunnerMode.Foreground
   ): Promise<ProcessDescription> {
     let interpreter = 'sh';
     const { command } = this;
+    if (Array.isArray(args)) args = args.join(' ');
+    if (command) args = `${command} ${args}`;
     let { script } = this._paths;
     if (mode === RunnerMode.Terminal) {
       interpreter = 'node';
@@ -243,9 +245,9 @@ export default abstract class Runner<Options = RunnerOptions> {
         'bin/openTerminal.js'
       );
       script = openTerminalPath;
-      args = [[command, ...args].join(' ')];
+      args = [args];
     } else {
-      await fs.writeFile(script, [command, ...args].join(' '));
+      await fs.writeFile(script, args);
       args = [];
     }
     const startOptions = {

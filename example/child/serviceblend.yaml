@@ -4,4 +4,4 @@ services:
       local:
         apparatus: sh
         definition: |
-          echo hello c
+          echo "1 2 3"
