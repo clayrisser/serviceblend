@@ -232,30 +232,25 @@ export default abstract class Runner<Options = RunnerOptions> {
     pm2StartOptions: Pm2StartOptions = {},
     mode = RunnerMode.Foreground
   ): Promise<ProcessDescription> {
-    let interpreter = 'sh';
     const { command } = this;
     if (Array.isArray(args)) args = args.join(' ');
     if (command) args = `${command} ${args}`;
-    let { script } = this._paths;
+    const { script } = this._paths;
     if (mode === RunnerMode.Terminal) {
-      interpreter = 'node';
       const openTerminalPkgPath = require.resolve('open-terminal/package.json');
       const openTerminalPath = path.resolve(
         openTerminalPkgPath.substr(0, openTerminalPkgPath.length - 13),
         'bin/openTerminal.js'
       );
-      script = openTerminalPath;
-      args = [args];
-    } else {
-      await fs.writeFile(script, args);
-      args = [];
+      args = `node ${openTerminalPath} ${args}`;
     }
+    await fs.writeFile(script, args);
     const startOptions = {
       ...pm2StartOptions,
-      args,
+      args: [],
       autorestart: false,
       instances: 1,
-      interpreter,
+      interpreter: 'sh',
       max_restarts: 1,
       merge_logs: true,
       name: this._name,
