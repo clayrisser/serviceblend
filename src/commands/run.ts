@@ -31,6 +31,9 @@ export default class Run extends Command {
 
   async run() {
     const { flags } = this.parse(Run);
+    let mode = RunnerMode.Foreground;
+    if (flags.detached) mode = RunnerMode.Detached;
+    if (flags.terminal) mode = RunnerMode.Terminal;
     const services = this.argv
       .filter((arg: string) => arg[0] !== '-')
       .reduce(
@@ -75,9 +78,6 @@ export default class Run extends Command {
           }
         : {})
     });
-    let mode = RunnerMode.Foreground;
-    if (flags.detached) mode = RunnerMode.Detached;
-    if (flags.terminal) mode = RunnerMode.Terminal;
     await serviceBlend.run(services, {
       mode,
       ...(flags.all || !Object.keys(services).length
