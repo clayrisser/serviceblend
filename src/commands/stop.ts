@@ -9,6 +9,7 @@ export default class Stop extends Command {
   static examples = ['$ serviceblend stop'];
 
   static flags: flags.Input<any> = {
+    all: flags.boolean({ char: 'a', required: false }),
     config: flags.string({ char: 'c', required: false }),
     environment: flags.string({ char: 'e', required: false }),
     name: flags.string({ char: 'n', required: false })
@@ -20,12 +21,29 @@ export default class Stop extends Command {
     {
       description: 'service names',
       name: 'SERVICENAMES...',
-      required: true
+      required: false
     }
   ];
 
   async run() {
     const { flags } = this.parse(Stop);
+    const services = this.argv
+      .filter((arg: string) => arg[0] !== '-')
+      .reduce(
+        (services: HashMap<Partial<ServiceBlendStopOptions>>, arg: string) => {
+          const {
+            serviceName,
+            environmentName,
+            options
+          } = parseArg<ServiceBlendStopOptions>(arg);
+          services[serviceName] = {
+            ...options,
+            environmentName
+          };
+          return services;
+        },
+        {}
+      );
     const serviceBlend = new ServiceBlend({
       ...(flags.environment
         ? {
@@ -43,28 +61,11 @@ export default class Stop extends Command {
           }
         : {})
     });
-    await serviceBlend.stop(
-      this.argv
-        .filter((arg: string) => arg[0] !== '-')
-        .reduce(
-          (
-            services: HashMap<Partial<ServiceBlendStopOptions>>,
-            arg: string
-          ) => {
-            const {
-              serviceName,
-              environmentName,
-              options
-            } = parseArg<ServiceBlendStopOptions>(arg);
-            services[serviceName] = {
-              ...options,
-              environmentName
-            };
-            return services;
-          },
-          {}
-        )
-    );
+    await serviceBlend.stop(services, {
+      ...(flags.all || !Object.keys(services).length
+        ? { all: true }
+        : { all: false })
+    });
     process.exit();
   }
 }

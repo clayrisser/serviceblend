@@ -50,6 +50,18 @@ export default class ServiceBlend {
     services: HashMap<Partial<ServiceBlendRunOptions>>,
     options: Partial<ServiceBlendRunOptions> = {}
   ) {
+    if (options.all) {
+      services = Object.keys(this._services).reduce(
+        (
+          services: HashMap<Partial<ServiceBlendRunOptions>>,
+          serviceName: string
+        ) => {
+          if (!services[serviceName]) services[serviceName] = {};
+          return services;
+        },
+        { ...services }
+      );
+    }
     try {
       await Promise.all(
         Object.entries(services).map(
@@ -74,6 +86,18 @@ export default class ServiceBlend {
     services: HashMap<Partial<ServiceBlendStopOptions>>,
     options: Partial<ServiceBlendStopOptions> = {}
   ) {
+    if (options.all) {
+      services = Object.keys(this._services).reduce(
+        (
+          services: HashMap<Partial<ServiceBlendRunOptions>>,
+          serviceName: string
+        ) => {
+          if (!services[serviceName]) services[serviceName] = {};
+          return services;
+        },
+        { ...services }
+      );
+    }
     try {
       await Promise.all(
         Object.entries(services).map(
@@ -162,10 +186,12 @@ export default class ServiceBlend {
 }
 
 export interface ServiceBlendStopOptions {
+  all?: boolean;
   environmentName?: string;
 }
 
 export interface ServiceBlendRunOptions {
+  all?: boolean;
   environmentName?: string;
   mode: RunnerMode;
   open?: boolean;

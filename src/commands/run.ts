@@ -10,6 +10,7 @@ export default class Run extends Command {
   static examples = ['$ serviceblend run'];
 
   static flags: flags.Input<any> = {
+    all: flags.boolean({ char: 'a', required: false }),
     config: flags.string({ char: 'c', required: false }),
     detached: flags.boolean({ char: 'd', required: false }),
     environment: flags.string({ char: 'e', required: false }),
@@ -24,12 +25,39 @@ export default class Run extends Command {
     {
       description: 'service names',
       name: 'SERVICENAMES...',
-      required: true
+      required: false
     }
   ];
 
   async run() {
     const { flags } = this.parse(Run);
+    const services = this.argv
+      .filter((arg: string) => arg[0] !== '-')
+      .reduce(
+        (services: HashMap<Partial<ServiceBlendRunOptions>>, arg: string) => {
+          const {
+            serviceName,
+            environmentName,
+            options
+          } = parseArg<ServiceBlendRunOptions>(
+            arg,
+            {
+              d: 'detached',
+              detached: { mode: RunnerMode.Detached },
+              o: 'open',
+              t: 'terminal',
+              terminal: { mode: RunnerMode.Terminal }
+            },
+            { mode }
+          );
+          services[serviceName] = {
+            ...options,
+            environmentName
+          };
+          return services;
+        },
+        {}
+      );
     const serviceBlend = new ServiceBlend({
       ...(flags.environment
         ? {
@@ -50,39 +78,13 @@ export default class Run extends Command {
     let mode = RunnerMode.Foreground;
     if (flags.detached) mode = RunnerMode.Detached;
     if (flags.terminal) mode = RunnerMode.Terminal;
-    await serviceBlend.run(
-      this.argv
-        .filter((arg: string) => arg[0] !== '-')
-        .reduce(
-          (services: HashMap<Partial<ServiceBlendRunOptions>>, arg: string) => {
-            const {
-              serviceName,
-              environmentName,
-              options
-            } = parseArg<ServiceBlendRunOptions>(
-              arg,
-              {
-                d: 'detached',
-                detached: { mode: RunnerMode.Detached },
-                o: 'open',
-                t: 'terminal',
-                terminal: { mode: RunnerMode.Terminal }
-              },
-              { mode }
-            );
-            services[serviceName] = {
-              ...options,
-              environmentName
-            };
-            return services;
-          },
-          {}
-        ),
-      {
-        mode,
-        ...(flags.open ? { open: true } : {})
-      }
-    );
+    await serviceBlend.run(services, {
+      mode,
+      ...(flags.all || !Object.keys(services).length
+        ? { all: true }
+        : { all: false }),
+      ...(flags.open ? { open: true } : {})
+    });
     process.exit();
   }
 }
